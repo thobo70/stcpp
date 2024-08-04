@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-
+#include "debug.h"
 #include "expr.h"
 #include "macro.h"
 
@@ -161,7 +161,7 @@ astnode_t *evalnode(astnode_t *node, int cond)
       node->val = cond ? node->left->val : node->right->val;
       break;
     default:
-      printf("evalnode: invalid operator %d\n", node->opinfo->token);
+      DPRINT("evalnode: invalid operator %d\n", node->opinfo->token);
       freenode(node);
       return NULL;
   }
@@ -171,7 +171,7 @@ astnode_t *evalnode(astnode_t *node, int cond)
   if (node->right != NULL) {
     freenode(node->right);
   }
-  printf("eval: %s %d -> %d\n", node->opinfo->name, cond, node->val);
+  DPRINT("eval: %s %d -> %d\n", node->opinfo->name, cond, node->val);
   node->opinfo = SET_OP_NUM;   // last should be OP_NUM
   node->left = NULL;
   node->right = NULL;
@@ -196,7 +196,7 @@ astnode_t *evaloperand(char **buf)
 {
   astnode_t *node = NULL;
 
-  printf("evaloperand: %s\n", *buf);
+  DPRINT("evaloperand: %s\n", *buf);
 
   char c = **buf;
   (*buf)++;
@@ -213,13 +213,13 @@ astnode_t *evaloperand(char **buf)
     case '(':
       if (**buf != ')')
       {
-        printf("Syntax error: missing ')'\n");
+        fprintf(stderr, "Syntax error: missing ')'\n");
         return NULL;
       }
       (*buf)++;
       evalnode(node, 1);
       if (node != NULL && node->opinfo->token == OP_NUM)
-        printf("evalexpr: %d\n", node->val);
+        DPRINT("evalexpr: %d\n", node->val);
       return node;
     case '!':
       node->val = !node->val;
@@ -274,7 +274,7 @@ astnode_t *evaloperand(char **buf)
       }
       if (digit >= base)
       {
-        printf("Syntax error: invalid digit\n");
+        fprintf(stderr, "Syntax error: invalid digit\n");
         freenode(node);
         return NULL;
       }
@@ -338,7 +338,7 @@ astnode_t *evaloperand(char **buf)
           node->val = '\0';
           break;
         default:
-          printf("Syntax error: invalid escape sequence\n");
+          fprintf(stderr, "Syntax error: invalid escape sequence\n");
           freenode(node);
           return NULL;
       }
@@ -347,7 +347,7 @@ astnode_t *evaloperand(char **buf)
     }
     (*buf)++;
     if (**buf != '\'') {
-      printf("Syntax error: missing closing quote\n");
+      fprintf(stderr, "Syntax error: missing closing quote\n");
       freenode(node);
       return NULL;
     }
@@ -356,7 +356,7 @@ astnode_t *evaloperand(char **buf)
   }
 
   freenode(node);  
-  printf("Syntax error: invalid operand >%s<\n", *buf - 1);
+  fprintf(stderr, "Syntax error: invalid operand >%s<\n", *buf - 1);
   return NULL;
 }
 
@@ -394,14 +394,14 @@ astnode_t *evaloperand(char **buf)
 
 const opinfo_t *getopinfo(char **buf)
 {
-  printf("getopinfopre: %s\n", *buf);
+  DPRINT("getopinfopre: %s\n", *buf);
   for (int i = 0; i < (int)(sizeof(opinfo) / sizeof(opinfo[0])); i++) {
     if (opinfo[i].name == NULL) {
       continue;
     }
     if (strncmp(*buf, opinfo[i].name, strlen(opinfo[i].name)) == 0) {
       *buf += strlen(opinfo[i].name);
-      printf("getopinfopost: %s\n", *buf);
+      DPRINT("getopinfopost: %s\n", *buf);
       return &opinfo[i];
     }
   }
@@ -412,12 +412,14 @@ const opinfo_t *getopinfo(char **buf)
 
 astnode_t *evalexpr(char **buf)
 {
+  assert(buf != NULL && *buf != NULL);
   astnode_t *node, *t;
 
-  printf("evalexpr: %s\n", *buf);
+  DPRINT("evalexpr: %s\n", *buf);
 
   node = evaloperand(buf);
-if (node != NULL) printf("operand: %d\n", node->val);
+if (node != NULL)
+ DPRINT("operand: %d\n", node->val);
   if (node == NULL || **buf == '\0' || **buf == ')') {
     return node;
   }
@@ -431,7 +433,7 @@ if (node != NULL) printf("operand: %d\n", node->val);
   node->left->parent = node;
   node->opinfo = getopinfo(buf);
   if (node->opinfo == NULL) {
-    printf("Syntax error: invalid operator\n");
+    fprintf(stderr, "Syntax error: invalid operator\n");
     freenode(node);
     return NULL;
   }

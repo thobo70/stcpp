@@ -1,4 +1,5 @@
 
+#include "debug.h"
 #include "cmdline.h"
 #include "input.h"
 #include "macro.h"
@@ -65,6 +66,8 @@ int condstate = 1;
  */
 int iscmdline(char *line)
 {
+  assert(line != NULL);
+
   if (line[0] == '#') {
     return 1;
   }
@@ -101,13 +104,16 @@ cmdtoken_t getcmdtype(char *cmd)
 
 int check_defined(char *buf, char *end)
 {
+  assert(buf != NULL);
+  assert(end != NULL);
+
   char *strend = buf + strlen(buf) + 1;
   char *start = buf;
   char *macro_start, *macro_end, *defined_end;
   char replace[2]; // Buffer to hold the ASCII number
 
   if (buf >= end || strend >= end) {
-    printf("check_defined: buffer overflow\n");
+    fprintf(stderr, "check_defined: buffer overflow\n");
     return -1; // error
   }
   while (start < strend)
@@ -123,7 +129,7 @@ int check_defined(char *buf, char *end)
         macro_start = buf + 1; // Move past "(" to the start of the macro name
         defined_end = strchr(macro_start, ')'); // Find the end of the macro name
         if (defined_end == NULL) {
-          printf("check_defined: missing ')'\n");
+          printf(stderr, "check_defined: missing ')'\n");
           return -1;
         }
         pmode = 1;
@@ -143,7 +149,7 @@ int check_defined(char *buf, char *end)
         ++buf;
       }
       if (buf == macro_start) {
-        printf("check_defined: missing/wrong macro name\n");
+        printf(stderr, "check_defined: missing/wrong macro name\n");
         return -1;
       }
       macro_end = buf; // Move back to the end of the macro name
@@ -178,6 +184,8 @@ int check_defined(char *buf, char *end)
 
 void stripspaces(char *buf)
 {
+  assert(buf != NULL);
+
   char *dest = buf;
   while (*buf != '\0')
   {
@@ -197,6 +205,9 @@ void stripspaces(char *buf)
 
 int evalifexpr(char *buf, char *end, eval_t *result)
 {
+  assert(buf != NULL);
+  assert(end != NULL);
+  assert(result != NULL);
   *result = 0;
 
   if (check_defined(buf, end) != 0 || processBuffer(buf, end - buf) != 0) {
@@ -221,6 +232,8 @@ int evalifexpr(char *buf, char *end, eval_t *result)
 
 int do_include(char *buf, char *end)
 {
+  assert(buf != NULL);
+  assert(end != NULL);
   char *strend = buf + strlen(buf) + 1;
   char *fname_start, *fname_end;
   int flag = 0;
@@ -270,6 +283,8 @@ int do_include(char *buf, char *end)
  */
 int processcmdline(char *buf, int size)
 {
+  assert(buf != NULL);
+  assert(size > 0);
   char *end = buf + size - 1;
   char *start = ++buf;  // skip the '#'
   char *strend = start + strlen(start);

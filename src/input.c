@@ -1,11 +1,14 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include "input.h"
 
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include "debug.h"
+#include "input.h"
+
 
 
 typedef struct sdir {
@@ -27,6 +30,7 @@ instream_t *getcurrentinstream()
 
 int addsearchdir(const char *path)
 {
+  assert(path != NULL);
   sdir_t *dir = malloc(sizeof(sdir_t));
   if (dir == NULL) {
     return -1;
@@ -72,6 +76,7 @@ char *checkpath(const char *fname, int flag)
   if (fname == NULL) {
     return NULL;
   }
+  // TODO: if original source file is not in current directory, add path to fname
   if (flag != 0 && access(fname, R_OK) == 0) {
     return strdup(fname);
   }
@@ -87,7 +92,7 @@ char *checkpath(const char *fname, int flag)
       strcat(pathname, "/");
     }
     strcat(pathname, fname);
-    printf("Checking %s\n", pathname);
+    DPRINT("Checking %s\n", pathname);
     if (access(pathname, R_OK) == 0) {
       return pathname;
     }
@@ -122,7 +127,7 @@ int newinstream(const char *fname, int flag)
 {
   char *pathname = checkpath(fname, flag);
   if (pathname == NULL) {
-    printf("File not found: %s\n", fname);
+    fprintf(stderr, "File not found: %s\n", fname);
     return -1;
   }
   instream_t *in = malloc(sizeof(instream_t));
@@ -158,6 +163,7 @@ int newinstream(const char *fname, int flag)
 
 int rawchar(instream_t *in)
 {
+  assert(in != NULL);
   if (in->eof) {
     return 0;
   }
@@ -182,6 +188,7 @@ int rawchar(instream_t *in)
 
 int preprocessedchar(instream_t *in)
 {
+  assert(in != NULL);
   int c = rawchar(in);
   if (c < 0) {
     return c;
@@ -268,6 +275,7 @@ int preprocessedchar(instream_t *in)
 
 int readchar(instream_t *in)
 {
+  assert(in != NULL);
   int c = preprocessedchar(in);
   if (c < 0) {
     return c;
@@ -318,40 +326,3 @@ int readline(instream_t *in, char *buf, int size)
   *buf = '\0';
   return 0;
 }
-
-
-
-/*
-int main()
-{
-  char *fname = "test.h";
-  instream_t in;
-  in.file = fopen(fname, "r");
-  in.fname = fname;
-  in.line = 1;
-  in.col = 0;
-  in.pos = 0;
-  in.last = 0;
-  in.whitespaces = 1;
-  in.buf[0] = 0;
-  in.buf[1] = 0;
-  in.buf[2] = 0;
-  in.buf[3] = 0;
-  in.eof = 0;
-  in.error = 0;
-
-  if (in.file == NULL) {
-    perror(in.fname);
-    return 1;
-  }
-
-  printf("Reading file %s\n", in.fname);
-  char buf[4096];
-  while (readline(&in, buf, sizeof(buf)) == 0) {
-    printf("%03d: %s\n", in.line, buf);
-  }
-  printf("%s: %s\n", in.fname, strerror(in.error));
-
-  return 0;
-}
-*/

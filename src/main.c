@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h> // For getopt()
 
+#include "debug.h"
 #include "input.h"
 #include "macro.h"
 #include "cmdline.h"
@@ -16,10 +17,6 @@ if outfile is specified with '-', stdout is used
 -Dname: Define a macro named name with a value of 1. You can also specify a value with -Dname=value.
 -Uname: Undefine the macro name.
 -Ipath: Add the directory path to the list of directories to be searched for header files.
--include file: Include the file before processing the main source file.
--nostdinc: Do not search the standard system directories for header files. Only the directories you have specified with -I options (and the directory of the current file, if appropriate) are searched.
--std=standard: Specify the standard to which the code should conform. For example, -std=c99 for ISO C99 standard.
--E: Stop after the preprocessing stage; do not run the compiler proper. The output is sent to standard output.
 */
 
 int main(int argc, char *argv[])
@@ -35,31 +32,31 @@ int main(int argc, char *argv[])
   while ((opt = getopt(argc, argv, optString)) != -1) {
     switch (opt) {
       case 'D':
-        printf("Define macro: %s\n", optarg);
+        DPRINT("Define macro: %s\n", optarg);
         // Here you would add code to define a macro
         break;
       case 'U':
-        printf("Undefine macro: %s\n", optarg);
+        DPRINT("Undefine macro: %s\n", optarg);
         // Here you would add code to undefine a macro
         break;
       case 'I':
-        printf("Include path: %s\n", optarg);
+        DPRINT("Include path: %s\n", optarg);
         addsearchdir(optarg);
         break;
      default:
         // Handle unknown options and missing option arguments
-        printf("Unknown option or missing option argument: %c\n", opt);
+        fprintf(stderr, "Unknown option or missing option argument: %c\n", opt);
         break;
     }
   }
 
   if (optind != argc - 2) {
-    printf("usage:\n");
-    printf("cpp [-Dname[=value]] [-Uname] [-Ipath] infile outfile\n");
+    fprintf(stderr, "usage:\n");
+    fprintf(stderr, "cpp [-Dname[=value]] [-Uname] [-Ipath] infile outfile\n");
     return 1;
   }
-  printf("Input file: %s\n", argv[optind]);
-  printf("Output file: %s\n", argv[optind + 1]);
+  DPRINT("Input file: %s\n", argv[optind]);
+  DPRINT("Output file: %s\n", argv[optind + 1]);
 
   if (newinstream(argv[optind], 1) != 0) {
     return 1;
@@ -72,7 +69,7 @@ int main(int argc, char *argv[])
       if (processcmdline(buf, sizeof(buf)) != 0) {
         printf("Error processing command line\n");
         instream_t *in = getcurrentinstream();
-        printf("%s(%d, %d): %s\n", in->fname, in->line, in->col, strerror(in->error));
+        DPRINT("%s(%d, %d): %s\n", in->fname, in->line, in->col, strerror(in->error));
         break;
       }
     } else {
@@ -90,7 +87,9 @@ int main(int argc, char *argv[])
   }
   // printf("%s: %s\n", in.fname, strerror(in.error));
 
+#ifndef NDEBUG
   printMacroList();
+#endif
 
   return 0;
 }

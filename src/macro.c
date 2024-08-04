@@ -65,6 +65,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "debug.h"
 #include "macro.h"
 
 /**
@@ -116,6 +117,8 @@ Macro *macroList = NULL;
  */
 char *skipSpaces(char *buf, char *end)
 {
+  assert(buf != NULL);
+  assert(end != NULL);
   while (buf < end && isspace(*buf)) {
     buf++;
   }
@@ -138,6 +141,8 @@ char *skipSpaces(char *buf, char *end)
  */
 char *skipString(char *buf, char *end)
 {
+  assert(buf != NULL);
+  assert(end != NULL);
   do {
     buf++;
   } while (buf < end && !(*buf == '\"' && *(buf - 1) != '\\'));
@@ -161,6 +166,8 @@ char *skipString(char *buf, char *end)
  */
 char *skipExpression(char *buf, char *end)
 {
+  assert(buf != NULL);
+  assert(end != NULL);
   int count = 1;
   while (buf < end && count > 0) {
     switch(*++buf) {
@@ -189,30 +196,30 @@ char *skipExpression(char *buf, char *end)
  */
 void printMacroList() {
   Macro *temp = macroList;
-  printf("*** Macro List:\n");
+  DPRINT("*** Macro List:\n");
   while (temp != NULL) {
-    printf("%s", temp->name);
+    DPRINT("%s", temp->name);
     MacroParam *param = temp->param;
     if (param != NULL) 
-      printf("(");
+      DPRINT("(");
     while (param != NULL) {
       if (param->name != NULL)
-        printf("%s", param->name);
+        DPRINT("%s", param->name);
       param = param->next;
       if (param != NULL) {
-        printf(", ");
+        DPRINT(", ");
       } else {
-        printf(")");
+        DPRINT(")");
       }
     }
     if (temp->replace != NULL) {
-      printf(" -> %s\n", temp->replace);
+      DPRINT(" -> %s\n", temp->replace);
     } else {
-      printf("\n");
+      DPRINT("\n");
     }
     temp = temp->next;
   }
-  printf("*** EOL\n");
+  DPRINT("*** EOL\n");
 }
 
 
