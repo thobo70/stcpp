@@ -46,7 +46,14 @@ int initsearchdirs()
     printf("CPATH not set\n");
     return 0;
   }
+
+  //*TODO: check if copy of environment variable is necessary
+  /*
   cpath = strdup(cpath);
+  if (cpath == NULL) {
+    return -1;
+  }
+  */
 
   char *p = strtok(cpath, ":");
   while(p != NULL) {

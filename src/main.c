@@ -1,12 +1,12 @@
 
-#include "input.h"
-#include "macro.h"
-#include "cmdline.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h> // For getopt()
+
+#include "input.h"
+#include "macro.h"
+#include "cmdline.h"
 
 /*
 write a function that takes the command line arguments and processes them
@@ -26,11 +26,12 @@ int main(int argc, char *argv[])
 {
   int opt;
   // Define your supported options here. The colon after each letter indicates that the option requires an argument.
-  const char *optString = "D:U:I:include:nostdinc:std:E";
+  const char *optString = "D:U:I:";
 
   if (initsearchdirs() != 0) {
     return 1;
   } 
+
   while ((opt = getopt(argc, argv, optString)) != -1) {
     switch (opt) {
       case 'D':
@@ -45,19 +46,22 @@ int main(int argc, char *argv[])
         printf("Include path: %s\n", optarg);
         addsearchdir(optarg);
         break;
-      case 'E':
-        printf("Stop after preprocessing\n");
-        // Here you would add code to stop after preprocessing
-        break;
-      // Handle other options, including 'include', 'nostdinc', and 'std'
-      default:
+     default:
         // Handle unknown options and missing option arguments
         printf("Unknown option or missing option argument: %c\n", opt);
         break;
     }
   }
 
-  if (newinstream("src/main.c", 1) != 0) {
+  if (optind != argc - 2) {
+    printf("usage:\n");
+    printf("cpp [-Dname[=value]] [-Uname] [-Ipath] infile outfile\n");
+    return 1;
+  }
+  printf("Input file: %s\n", argv[optind]);
+  printf("Output file: %s\n", argv[optind + 1]);
+
+  if (newinstream(argv[optind], 1) != 0) {
     return 1;
   }
 

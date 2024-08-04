@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "macro.h": "c",
+    "string.h": "c"
+  }
+}
