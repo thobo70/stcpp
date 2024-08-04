@@ -8,12 +8,54 @@
 #include <unistd.h>
 
 
+typedef struct sdir {
+  struct sdir *next;
+  const char *path;
+} sdir_t;
+
+sdir_t *sdirs = NULL;
+
 instream_t *currentinstream = NULL;
 
 
 instream_t *getcurrentinstream()
 {
   return currentinstream;
+}
+
+
+
+int addsearchdir(const char *path)
+{
+  sdir_t *dir = malloc(sizeof(sdir_t));
+  if (dir == NULL) {
+    return -1;
+  }
+  dir->next = sdirs;
+  dir->path = path;
+  sdirs = dir;
+  return 0;
+}
+
+
+
+int initsearchdirs()
+{
+  char *cpath = getenv("CPATH");
+  if (cpath == NULL) {
+    printf("CPATH not set\n");
+    return 0;
+  }
+  cpath = strdup(cpath);
+
+  char *p = strtok(cpath, ":");
+  while(p != NULL) {
+    if (addsearchdir(p) != 0) {
+      return -1;
+    }
+    p = strtok(NULL, ":");
+  }
+  return 0;
 }
 
 
@@ -26,34 +68,25 @@ char *checkpath(const char *fname, int flag)
   if (flag != 0 && access(fname, R_OK) == 0) {
     return strdup(fname);
   }
-  char *cpath = getenv("CPATH");
-  if (cpath == NULL) {
-    printf("CPATH not set\n");
-    return NULL;
-  }
-  cpath = strdup(cpath);
 
-  char *p = strtok(cpath, ":");
-  while(p != NULL) {
-    char *pathname = malloc(strlen(p) + strlen(fname) + 2);
+  sdir_t *dir = sdirs;
+  while (dir != NULL) {
+    char *pathname = malloc(strlen(dir->path) + strlen(fname) + 2);
     if (pathname == NULL) {
-      free(cpath);
       return NULL;
     }
-    strcpy(pathname, p);
+    strcpy(pathname, dir->path);
     if (pathname[strlen(pathname) - 1] != '/') {
       strcat(pathname, "/");
     }
     strcat(pathname, fname);
     printf("Checking %s\n", pathname);
     if (access(pathname, R_OK) == 0) {
-      free(cpath);
       return pathname;
     }
     free(pathname);
-    p = strtok(NULL, ":");
+    dir = dir->next;
   }
-  free(cpath);
   return NULL;
 }
 

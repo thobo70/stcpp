@@ -28,6 +28,9 @@ int main(int argc, char *argv[])
   // Define your supported options here. The colon after each letter indicates that the option requires an argument.
   const char *optString = "D:U:I:include:nostdinc:std:E";
 
+  if (initsearchdirs() != 0) {
+    return 1;
+  } 
   while ((opt = getopt(argc, argv, optString)) != -1) {
     switch (opt) {
       case 'D':
@@ -40,7 +43,7 @@ int main(int argc, char *argv[])
         break;
       case 'I':
         printf("Include path: %s\n", optarg);
-        // Here you would add code to add an include path
+        addsearchdir(optarg);
         break;
       case 'E':
         printf("Stop after preprocessing\n");
@@ -54,7 +57,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (newinstream("test.h", 1) != 0) {
+  if (newinstream("src/main.c", 1) != 0) {
     return 1;
   }
 
