@@ -1,3 +1,17 @@
+/**
+ * @file cmdline.c
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-07
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 
 #include "debug.h"
 #include "cmdline.h"
@@ -5,9 +19,6 @@
 #include "macro.h"
 #include "expr.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
 
 
 typedef enum cmdtoken {
@@ -65,7 +76,7 @@ int condstate = 1;
  * @return 1 if the line is a command line, 0 otherwise.
  */
 int iscmdline(char *line)
-{
+{  // NOLINT
   assert(line != NULL);
 
   if (line[0] == '#') {
@@ -110,11 +121,11 @@ int check_defined(char *buf, char *end)
   char *strend = buf + strlen(buf) + 1;
   char *start = buf;
   char *macro_start, *macro_end, *defined_end;
-  char replace[2]; // Buffer to hold the ASCII number
+  char replace[2];  // Buffer to hold the ASCII number
 
   if (buf >= end || strend >= end) {
     fprintf(stderr, "check_defined: buffer overflow\n");
-    return -1; // error
+    return -1;  // error
   }
   while (start < strend)
   {
@@ -122,18 +133,18 @@ int check_defined(char *buf, char *end)
     // Find the start of a "defined" expression
     if ((start = strstr(start, "defined")) != NULL)
     {
-      buf = start + 7; // Move past "defined" keyword
-      while (isspace(*buf)) ++buf; // Skip whitespace
+      buf = start + 7;  // Move past "defined" keyword
+      while (isspace(*buf)) ++buf;  // Skip whitespace
 
-      if (*buf == '(') { // If macro is in parentheses
-        macro_start = buf + 1; // Move past "(" to the start of the macro name
-        defined_end = strchr(macro_start, ')'); // Find the end of the macro name
+      if (*buf == '(') {  // If macro is in parentheses
+        macro_start = buf + 1;  // Move past "(" to the start of the macro name
+        defined_end = strchr(macro_start, ')');  // Find the end of the macro name
         if (defined_end == NULL) {
-          printf(stderr, "check_defined: missing ')'\n");
+          fprintf(stderr, "check_defined: missing ')'\n");
           return -1;
         }
         pmode = 1;
-      } else { // If macro is not in parentheses
+      } else {  // If macro is not in parentheses
         macro_start = buf;
         defined_end = strend;
       }
@@ -142,20 +153,20 @@ int check_defined(char *buf, char *end)
         ++macro_start;
       }
       buf = macro_start;
-      while(buf < defined_end) {
+      while (buf < defined_end) {
         if (!isIdent(*buf, buf - macro_start)) {
           break;
         }
         ++buf;
       }
       if (buf == macro_start) {
-        printf(stderr, "check_defined: missing/wrong macro name\n");
+        fprintf(stderr, "check_defined: missing/wrong macro name\n");
         return -1;
       }
-      macro_end = buf; // Move back to the end of the macro name
+      macro_end = buf;  // Move back to the end of the macro name
       if (pmode == 0) {
         defined_end = buf;
-      } 
+      }
 
       // Check if the macro is defined and get the ASCII number
       replace[0] = isdefinedMacro(macro_start, macro_end) + '0';
@@ -169,9 +180,7 @@ int check_defined(char *buf, char *end)
 
       // Move past the "defined(macro)" expression replacement
       start++;
-    }
-    else
-    {
+    } else {
       // No more "defined(macro)" expressions
       break;
     }
@@ -187,14 +196,10 @@ void stripspaces(char *buf)
   assert(buf != NULL);
 
   char *dest = buf;
-  while (*buf != '\0')
-  {
-    if (isspace(*buf))
-    {
+  while (*buf != '\0') {
+    if (isspace(*buf)) {
       buf++;
-    }
-    else
-    {
+    } else {
       *dest++ = *buf++;
     }
   }
@@ -214,7 +219,7 @@ int evalifexpr(char *buf, char *end, eval_t *result)
     return -1;
   }
   stripspaces(buf);
-  
+
   astnode_t *node = evalexpr(&buf);
   node = evalnode(getroot(node), 1);
   if (node == NULL || node->opinfo->token != OP_NUM) {
@@ -239,23 +244,18 @@ int do_include(char *buf, char *end)
   int flag = 0;
 
   if (buf >= end || strend >= end) {
-    return -1; // error
+    return -1;  // error
   }
 
   // Find the start of the filename
-  if ((fname_start = strchr(buf, '<')) != NULL)
-  {
+  if ((fname_start = strchr(buf, '<')) != NULL) {
     fname_start++;
     fname_end = strchr(fname_start, '>');
-  }
-  else if ((fname_start = strchr(buf, '\"')) != NULL)
-  {
+  } else if ((fname_start = strchr(buf, '\"')) != NULL) {
     fname_start++;
     fname_end = strchr(fname_start, '\"');
     flag = 1;
-  }
-  else
-  {
+  } else {
     return -1;
   }
   if (fname_end == NULL) {
@@ -290,7 +290,7 @@ int processcmdline(char *buf, int size)
   char *strend = start + strlen(start);
 
   if (buf >= end || strend >= end) {
-    return -1; // error
+    return -1;  // error
   }
 
   if (*buf == ' ') {    // skip leading whitespaces
@@ -298,7 +298,7 @@ int processcmdline(char *buf, int size)
     ++start;
   }
 
-  while (buf < end && *buf != ' ' && *buf != '\n' && *buf != '\0') { // find the end of the command
+  while (buf < end && *buf != ' ' && *buf != '\n' && *buf != '\0') {  // find the end of the command
     ++buf;
   }
   *buf = '\0';
@@ -335,8 +335,7 @@ int processcmdline(char *buf, int size)
       return 0;
     }
   }
-  switch (cmd)
-  {
+  switch (cmd) {
     case EMPTY:
       printf("empty cmd\n");
       break;
@@ -347,7 +346,7 @@ int processcmdline(char *buf, int size)
       printf("Include: %s\n", buf + 1);
       if (do_include(buf + 1, end) != 0) {
         return -1;
-      }      
+      }
       break;
     case DEFINE:
       printf("Define: %s\n", buf + 1);

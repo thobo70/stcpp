@@ -4,6 +4,7 @@
  * @brief This file contains the implementation of macros.
  * @version 0.1
  * @date 2024-03-30
+ * @copyright Copyright (c) 2024
  *
  * The macro.c file contains a set of functions that implement a basic macro
  * processor. The macro processor allows you to define macros, which are named
@@ -57,7 +58,6 @@
  * over whitespace, strings, and expressions in a buffer, check if a character
  * is a valid identifier character, and print the list of macros.
  *
- * @copyright Copyright (c) 2024
  */
 
 #include <stdio.h>
@@ -170,7 +170,7 @@ char *skipExpression(char *buf, char *end)
   assert(end != NULL);
   int count = 1;
   while (buf < end && count > 0) {
-    switch(*++buf) {
+    switch (*++buf) {
       case '(':
         count++;
         break;
@@ -194,13 +194,14 @@ char *skipExpression(char *buf, char *end)
  * It iterates through each macro in the list and prints its name, parameters (if any),
  * and replacement text (if any).
  */
-void printMacroList() {
+void printMacroList()
+{
   Macro *temp = macroList;
   DPRINT("*** Macro List:\n");
   while (temp != NULL) {
     DPRINT("%s", temp->name);
     MacroParam *param = temp->param;
-    if (param != NULL) 
+    if (param != NULL)
       DPRINT("(");
     while (param != NULL) {
       if (param->name != NULL)
@@ -309,14 +310,14 @@ int addMacro(char *buf)
   char *token, *end = buf + strlen(buf), *name = NULL;
 
   // find begin of macro name
-  while(buf < end && isspace(*buf)) {
+  while (buf < end && isspace(*buf)) {
     buf++;
   }
 
   // find end of macro name, has to be a valid identifier and there has to be a '(' or ' ' after it
   name = buf;
   int i = 0;
-  while(buf < end && isIdent(*buf, i++)) {
+  while (buf < end && isIdent(*buf, i++)) {
     buf++;
   }
   char type = *buf;
@@ -330,7 +331,7 @@ int addMacro(char *buf)
   if (type == '(') {
     buf++;
     MacroParam *param = NULL;
-    while(buf < end) {
+    while (buf < end) {
       if (param == NULL) {
         param = malloc(sizeof(MacroParam));
         paramList = param;
@@ -341,23 +342,23 @@ int addMacro(char *buf)
       param->next = NULL;
       param->name = NULL;
       // remove preciding spaces
-      while(buf < end && isspace(*buf)) {
+      while (buf < end && isspace(*buf)) {
         buf++;
       }
       // find end of parameter name, has to be a valid identifier
       i = 0;
       token = buf;
-      while(buf < end && isIdent(*buf, i++)) {
+      while (buf < end && isIdent(*buf, i++)) {
         buf++;
       }
       if (buf >= end) {
-        return -1;    /** @todo error no ')' */ 
+        return -1;    /** @todo error no ')' */
       }
       char c = *buf;
       *buf++ = '\0';
       if (isspace(c)) {
         // remove trailing spaces
-        while(buf < end && isspace(*buf)) {
+        while (buf < end && isspace(*buf)) {
           buf++;
         }
         if (buf >= end) {
@@ -401,7 +402,7 @@ int addMacro(char *buf)
     }
     temp->next = newMacro;
   }
-  
+
   return 0;
 }
 
@@ -540,7 +541,7 @@ char *replaceBuf(char *start, char *buf, char *end, char *replace)
   }
   int rlen = strlen(replace);
 
-  if (start + rlen + (endstr - buf) >= end) { // buffer too small
+  if (start + rlen + (endstr - buf) >= end) {  // buffer too small
     return NULL;
   }
 
@@ -565,7 +566,7 @@ char *replaceBuf(char *start, char *buf, char *end, char *replace)
 void removeDoubleHash(char *buf, char *endmacro)
 {
   char *endstr = endmacro + strlen(endmacro);
-  
+
   while (buf < endmacro) {
     if (*buf == '#' && *(buf + 1) == '#') {
       // remove both '#'
@@ -593,7 +594,7 @@ void removeDoubleHash(char *buf, char *endmacro)
  */
 char *findEndOfParameter(char *buf, char *end) {
   while (buf < end && *buf != ',' && *buf != ')') {  // find end of parameter
-    if (*buf == '\"') // skip string
+    if (*buf == '\"')  // skip string
       buf = skipString(buf, end);
     if (*buf == '(')  // nested functional macro or other expressions or strings
       buf = skipExpression(buf, end);
@@ -625,7 +626,7 @@ int processMacro(char *buf, int len)
   while (buf <= end && isIdent(*buf, buf - start)) {
     buf++;
   }
-  if (buf == start) { // no valid identifier, therefore advance one char
+  if (buf == start) {  // no valid identifier, therefore advance one char
     return 1;
   }
   Macro *macro = findMacro(start, buf);
@@ -641,7 +642,7 @@ int processMacro(char *buf, int len)
       return -1;
     }
     buf++;
-    // int n = 0; 
+    // int n = 0;
     while (param != NULL) {
       buf = skipSpaces(buf, end);
       if (buf >= end) {
@@ -722,7 +723,7 @@ int processMacro(char *buf, int len)
       token++;
     }
 
-    for (Macro *parammacro = parammacrolist, *next; parammacro != NULL; parammacro = next) { // free memory of parammacro's
+    for (Macro *parammacro = parammacrolist, *next; parammacro != NULL; parammacro = next) {  // free memory of parammacro's
       next = parammacro->next;
       free(parammacro->replace);
       free(parammacro);
@@ -730,7 +731,7 @@ int processMacro(char *buf, int len)
   }
 
   removeDoubleHash(start, buf);
-  
+
   return 0;
 }
 
@@ -754,7 +755,7 @@ int processBuffer(char *buf, int len)
   // Scan buf to recognize macros
   char *start = buf, *end = buf + len;
 
-  while(buf < end && *buf != '\0') {
+  while (buf < end && *buf != '\0') {
     buf = skipSpaces(buf, end);  // skip preceding spaces
     if (isIdent(*buf, 0)) {
       int cnt = processMacro(buf, end - buf);

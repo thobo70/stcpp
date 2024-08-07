@@ -1,3 +1,14 @@
+/**
+ * @file debug.h
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-07
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #ifndef DEBUG_H
 #define DEBUG_H
 
@@ -8,8 +19,8 @@
 #define DPRINT(fmt, ...)  do { } while (0)
 #define DPRINTERR(fmt, ...)  do { } while (0)
 #else
-#define DPRINT(fmt, ...)  do { fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__); } while (0)
-#define DPRINTERR(fmt, ...)  do { fprinf(stderr, "%s[%s]: ", __FILE__, __LINE__); fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__); } while (0)
+#define DPRINT(fmt, ...)  do { fprintf(stderr, fmt __VA_OPT__( , ) __VA_ARGS__); } while (0)
+#define DPRINTERR(fmt, ...)  do { fprinf(stderr, "%s[%s]: ", __FILE__, __LINE__); fprintf(stderr, fmt __VA_OPT__( , ) __VA_ARGS__); } while (0)
 #endif
 
-#endif // DEBUG_H
+#endif  // DEBUG_H

@@ -1,11 +1,21 @@
+/**
+ * @file expr.c
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-07
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "debug.h"
-#include "expr.h"
-#include "macro.h"
+#include "debug.h"  // NOLINT
+#include "expr.h"  // NOLINT
+#include "macro.h"  // NOLINT
 
 
 #define SET_OP_NUM (&opinfo[sizeof(opinfo) / sizeof(opinfo_t) - 1])   // last should be OP_NUM
@@ -102,7 +112,7 @@ astnode_t *evalnode(astnode_t *node, int cond)
       }
       node->val = node->left->val / node->right->val;
       break;
-    case OP_MOD: 
+    case OP_MOD:
       if (node->right->val == 0) {
         freenode(node);
         return NULL;
@@ -260,20 +270,15 @@ astnode_t *evaloperand(char **buf)
     } else {
       node->val = c - '0';
     }
-    while (isdigit(**buf) || (base == 16 && isxdigit(**buf)))
-    {
+    while (isdigit(**buf) || (base == 16 && isxdigit(**buf))) {
       eval_t digit = 0;
       node->val *= base;
-      if (isdigit(**buf))
-      {
+      if (isdigit(**buf)) {
         digit = (**buf - '0');
-      }
-      else
-      {
+      } else {
         digit = (tolower(**buf) - 'a' + 10);
       }
-      if (digit >= base)
-      {
+      if (digit >= base) {
         fprintf(stderr, "Syntax error: invalid digit\n");
         freenode(node);
         return NULL;
@@ -281,17 +286,14 @@ astnode_t *evaloperand(char **buf)
       (*buf)++;
       node->val += digit;
     }
-    if (**buf != 0 && strchr("uUlL", **buf) != NULL)
-    {
+    if (**buf != 0 && strchr("uUlL", **buf) != NULL) {
       (*buf)++;
     }
     return node;
   }
-  if (isIdent(c, 0))
-  {
+  if (isIdent(c, 0)) {
     char *start = *buf - 1;
-    while (isIdent(**buf, *buf - start))
-    {
+    while (isIdent(**buf, *buf - start)) {
       (*buf)++;
     }
     node->val = isdefinedMacro(start, *buf);
@@ -300,7 +302,7 @@ astnode_t *evaloperand(char **buf)
   if (c == '\'') {
     if (**buf == '\\') {
       (*buf)++;
-      switch(**buf) {
+      switch (**buf) {
         case 'n':
           node->val = '\n';
           break;
@@ -355,7 +357,7 @@ astnode_t *evaloperand(char **buf)
     return node;
   }
 
-  freenode(node);  
+  freenode(node);
   fprintf(stderr, "Syntax error: invalid operand >%s<\n", *buf - 1);
   return NULL;
 }
@@ -395,7 +397,7 @@ astnode_t *evaloperand(char **buf)
 const opinfo_t *getopinfo(char **buf)
 {
   DPRINT("getopinfopre: %s\n", *buf);
-  for (int i = 0; i < (int)(sizeof(opinfo) / sizeof(opinfo[0])); i++) {
+  for (int i = 0; i < (int)(sizeof(opinfo) / sizeof(opinfo[0])); i++) {  // NOLINT
     if (opinfo[i].name == NULL) {
       continue;
     }
@@ -418,8 +420,7 @@ astnode_t *evalexpr(char **buf)
   DPRINT("evalexpr: %s\n", *buf);
 
   node = evaloperand(buf);
-if (node != NULL)
- DPRINT("operand: %d\n", node->val);
+  if (node != NULL)  DPRINT("operand: %d\n", node->val);
   if (node == NULL || **buf == '\0' || **buf == ')') {
     return node;
   }

@@ -1,8 +1,18 @@
+/**
+ * @file main.c
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-07
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h> // For getopt()
+#include <unistd.h>  // For getopt()
 
 #include "debug.h"
 #include "input.h"
@@ -27,7 +37,7 @@ int main(int argc, char *argv[])
 
   if (initsearchdirs() != 0) {
     return 1;
-  } 
+  }
 
   while ((opt = getopt(argc, argv, optString)) != -1) {
     switch (opt) {

@@ -1,7 +1,16 @@
+/**
+ * @file input.c
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-07
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #include <ctype.h>
 #include <errno.h>
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -51,7 +60,7 @@ int initsearchdirs()
     return 0;
   }
 
-  //*TODO: check if copy of environment variable is necessary
+  //* @todo: check if copy of environment variable is necessary
   /*
   cpath = strdup(cpath);
   if (cpath == NULL) {
@@ -60,7 +69,7 @@ int initsearchdirs()
   */
 
   char *p = strtok(cpath, ":");
-  while(p != NULL) {
+  while (p != NULL) {
     if (addsearchdir(p) != 0) {
       return -1;
     }
@@ -76,7 +85,7 @@ char *checkpath(const char *fname, int flag)
   if (fname == NULL) {
     return NULL;
   }
-  // TODO: if original source file is not in current directory, add path to fname
+  // @todo: if original source file is not in current directory, add path to fname
   if (flag != 0 && access(fname, R_OK) == 0) {
     return strdup(fname);
   }
@@ -200,7 +209,7 @@ int preprocessedchar(instream_t *in)
     return c;
   }
   if (c == '\"' && in->last != '\\') {
-    in->string = 1;
+    in->string = 1;  // NOLINT
     return c;
   }
   if (c == '/' && in->last != '\\') {
@@ -303,7 +312,6 @@ int readline(instream_t *in, char *buf, int size)
       return 1;
     }
     currentinstream = in->parent;
-
   }
 
   while (buf < end) {
