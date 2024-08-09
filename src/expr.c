@@ -171,6 +171,7 @@ astnode_t *evalnode(astnode_t *node, int cond)
       node->val = cond ? node->left->val : node->right->val;
       break;
     default:
+      // cppcheck-suppress syntaxError
       DPRINT("evalnode: invalid operator %d\n", node->opinfo->token);
       freenode(node);
       return NULL;

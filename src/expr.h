@@ -1,3 +1,14 @@
+/**
+ * @file expr.h
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-09
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #ifndef EXPR_H
 #define EXPR_H
 

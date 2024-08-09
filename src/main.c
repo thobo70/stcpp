@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
   while ((opt = getopt(argc, argv, optString)) != -1) {
     switch (opt) {
       case 'D':
+        // cppcheck-suppress syntaxError
         DPRINT("Define macro: %s\n", optarg);
         // Here you would add code to define a macro
         break;

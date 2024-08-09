@@ -101,6 +101,7 @@ char *checkpath(const char *fname, int flag)
       strcat(pathname, "/");
     }
     strcat(pathname, fname);
+    // cppcheck-suppress syntaxError
     DPRINT("Checking %s\n", pathname);
     if (access(pathname, R_OK) == 0) {
       return pathname;

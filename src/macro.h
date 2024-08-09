@@ -1,15 +1,14 @@
 /**
  * @file macro.h
- * @brief Header file for macro processing functions.
  * @author Thomas Boos (tboos70@gmail.com)
+ * @brief 
  * @version 0.1
- * @date 2024-03-30
+ * @date 2024-08-09
  * 
- * This file contains the function prototypes for the macro processing functions
- * implemented in macro.c. These functions include addMacro, deleteMacro,
- * processBuffer, printMacroList, and isdefinedMacro.
+ * @copyright Copyright (c) 2024
  * 
  */
+
 #ifndef MACRO_H
 #define MACRO_H
 
@@ -22,4 +21,4 @@ int isdefinedMacro(char *start, char *end);
 int isIdent(char c, int idx);
 char *replaceBuf(char *start, char *buf, char *end, char *replace);
 
-#endif // MACRO_H
+#endif  // MACRO_H

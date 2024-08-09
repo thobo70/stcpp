@@ -9,7 +9,7 @@
  * 
  */
 
-#ifndef DEBUG_H
+#ifndef DEBUG_H  // NOLINT
 #define DEBUG_H
 
 #include <stdio.h>
@@ -23,4 +23,4 @@
 #define DPRINTERR(fmt, ...)  do { fprinf(stderr, "%s[%s]: ", __FILE__, __LINE__); fprintf(stderr, fmt __VA_OPT__( , ) __VA_ARGS__); } while (0)
 #endif
 
-#endif  // DEBUG_H
+#endif  // DEBUG_H  // NOLINT

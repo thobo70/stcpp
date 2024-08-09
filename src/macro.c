@@ -197,6 +197,7 @@ char *skipExpression(char *buf, char *end)
 void printMacroList()
 {
   Macro *temp = macroList;
+  // cppcheck-suppress syntaxError
   DPRINT("*** Macro List:\n");
   while (temp != NULL) {
     DPRINT("%s", temp->name);
