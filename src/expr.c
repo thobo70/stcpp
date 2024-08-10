@@ -358,9 +358,16 @@ astnode_t *evaloperand(char **buf)
     return node;
   }
 
+  // no operand found, we assume empty Macros will be 0
+  // @todo: check if this is correct
+  node->val = 0;
+  (*buf)--;  // rewind
+  return node;
+  /*
   freenode(node);
   fprintf(stderr, "Syntax error: invalid operand >%s<\n", *buf - 1);
   return NULL;
+  */
 }
 
 

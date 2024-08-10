@@ -709,7 +709,8 @@ int processMacro(char *buf, int len)
         }
         Macro *parammacro = parammacrolist;
         while (parammacro != NULL) {
-          if (strlen(parammacro->name) == (size_t)(tokenend - token) && strncmp(parammacro->name, token, strlen(parammacro->name)) == 0) {
+          if (strlen(parammacro->name) == (size_t)(tokenend - token)
+          && strncmp(parammacro->name, token, strlen(parammacro->name)) == 0) {
             char *newtoken = replaceBuf(token, token + strlen(parammacro->name), end, parammacro->replace);
             if (newtoken == NULL) {  // buffer too small
               return -1;
@@ -724,7 +725,8 @@ int processMacro(char *buf, int len)
       token++;
     }
 
-    for (Macro *parammacro = parammacrolist, *next; parammacro != NULL; parammacro = next) {  // free memory of parammacro's
+    // free memory of parammacro's
+    for (Macro *parammacro = parammacrolist, *next; parammacro != NULL; parammacro = next) {
       next = parammacro->next;
       free(parammacro->replace);
       free(parammacro);

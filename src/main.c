@@ -32,6 +32,8 @@ if outfile is specified with '-', stdout is used
 int main(int argc, char *argv[])
 {
   int opt;
+  FILE *outfile = stdout;
+  char *outfname = NULL, *infname = NULL;
   // Define your supported options here. The colon after each letter indicates that the option requires an argument.
   const char *optString = "D:U:I:";
 
@@ -66,10 +68,20 @@ int main(int argc, char *argv[])
     fprintf(stderr, "cpp [-Dname[=value]] [-Uname] [-Ipath] infile outfile\n");
     return 1;
   }
-  DPRINT("Input file: %s\n", argv[optind]);
-  DPRINT("Output file: %s\n", argv[optind + 1]);
+  infname = argv[optind];
+  outfname = argv[optind + 1];
+  DPRINT("Input file: %s\n", infname);
+  DPRINT("Output file: %s\n", outfname);
+  if (strcmp(outfname, "-") != 0) {
+    outfile = fopen(outfname, "w");
+    if (outfile == NULL) {
+      perror(outfname);
+      return 1;
+    }
+  }
 
-  if (newinstream(argv[optind], 1) != 0) {
+
+  if (newinstream(infname, 1) != 0) {
     return 1;
   }
 
@@ -90,6 +102,7 @@ int main(int argc, char *argv[])
         printf("Error processing buffer\n");
         break;
       }
+      fputs(buf, outfile);
       // printf("%1d %03d: %s\n", condstate, in.line, buf);
     }
   }
