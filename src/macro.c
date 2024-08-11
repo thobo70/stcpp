@@ -59,7 +59,7 @@
  * is a valid identifier character, and print the list of macros.
  *
  */
-#define NDEBUG
+// #define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -146,6 +146,30 @@ char *skipString(char *buf, char *end)
   do {
     buf++;
   } while (buf < end && !(*buf == '\"' && *(buf - 1) != '\\'));
+  return buf;
+}
+
+
+
+char *skipNumber(char *buf, char *end)
+{
+  assert(buf != NULL);
+  assert(end != NULL);
+  if (!isdigit(*buf)) {
+    return buf;
+  }
+
+  ++buf;
+  while (buf < end) {
+    char c = tolower(*buf);
+    if (c == 'u' || c == 'l') {
+      return ++buf;
+    } 
+    if (!isdigit(c) && c != 'x' && c != 'a' && c != 'b' && c != 'c' && c != 'd' && c != 'e' && c != 'f') {
+      break;
+    }
+    buf++;
+  }
   return buf;
 }
 
@@ -377,8 +401,11 @@ int addMacro(char *buf)
         return -1;    /** @todo  error no ',' */
       }
     }
+  } else {
+    if (buf < end) {
+      buf++;
+    }
   }
-
   // remove preciding spaces before the replacement text
   buf = skipSpaces(buf, end);
 
@@ -490,7 +517,9 @@ Macro *findMacro(char *start, char *end)
 {
   Macro *temp = macroList;
 
+  // DPRINT("findMacro: %.*s\n", (int)(end - start), start);
   while (temp != NULL) {
+    // DPRINT("findMacro: check %s\n", temp->name);
     if (strlen(temp->name) == (size_t)(end - start) && strncmp(temp->name, start, strlen(temp->name)) == 0) {
       return temp;
     }
@@ -772,6 +801,9 @@ int processBuffer(char *buf, int len)
     if (*buf == '\"' && !(buf > start && *(buf - 1) == '\\'))
       buf = skipString(buf, end);
     // ignore char
+    if (isdigit(*buf)) {
+      buf = skipNumber(buf, end);
+    }
     buf++;
   }
   return 0;

@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#define NDEBUG
+// #define NDEBUG
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -182,7 +182,7 @@ astnode_t *evalnode(astnode_t *node, int cond)
   if (node->right != NULL) {
     freenode(node->right);
   }
-  DPRINT("eval: %s %d -> %d\n", node->opinfo->name, cond, node->val);
+  DPRINT("eval: %s %d -> %ld\n", node->opinfo->name, cond, node->val);
   node->opinfo = SET_OP_NUM;   // last should be OP_NUM
   node->left = NULL;
   node->right = NULL;
@@ -230,7 +230,7 @@ astnode_t *evaloperand(char **buf)
       (*buf)++;
       evalnode(node, 1);
       if (node != NULL && node->opinfo->token == OP_NUM)
-        DPRINT("evalexpr: %d\n", node->val);
+        DPRINT("evalexpr: %ld\n", node->val);
       return node;
     case '!':
       node->val = !node->val;
@@ -428,7 +428,7 @@ astnode_t *evalexpr(char **buf)
   DPRINT("evalexpr: %s\n", *buf);
 
   node = evaloperand(buf);
-  if (node != NULL)  DPRINT("operand: %d\n", node->val);
+  if (node != NULL)  DPRINT("operand: %ld\n", node->val);
   if (node == NULL || **buf == '\0' || **buf == ')') {
     return node;
   }

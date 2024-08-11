@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#define NDEBUG
+// #define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,11 +41,14 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  char *oarg = NULL;
   while ((opt = getopt(argc, argv, optString)) != -1) {
     switch (opt) {
       case 'D':
+        oarg = optarg;
         // cppcheck-suppress syntaxError
-        DPRINT("Define macro: %s\n", optarg);
+        DPRINT("Define macro: %s\n", oarg);
+        addMacro(oarg);   // @todo: addMacro() is not enough, you need to parse the optarg for name and value
         // Here you would add code to define a macro
         break;
       case 'U':
@@ -53,7 +56,6 @@ int main(int argc, char *argv[])
         // Here you would add code to undefine a macro
         break;
       case 'I':
-        DPRINT("Include path: %s\n", optarg);
         addsearchdir(optarg);
         break;
      default:
@@ -91,7 +93,7 @@ int main(int argc, char *argv[])
     if (iscmdline(buf)) {
       if (processcmdline(buf, sizeof(buf)) != 0) {
         printf("Error processing command line\n");
-        // instream_t *in = getcurrentinstream();
+        instream_t *in = getcurrentinstream();
         DPRINT("%s(%d, %d): %s\n", in->fname, in->line, in->col, strerror(in->error));
         break;
       }

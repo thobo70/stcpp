@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-#define NDEBUG
+// #define NDEBUG
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -149,9 +149,8 @@ int check_defined(char *buf, char *end)
         defined_end = strend;
       }
 
-      while (isspace(*macro_start)) {
-        ++macro_start;
-      }
+      while (isspace(*macro_start)) ++macro_start;  // Skip whitespace
+
       buf = macro_start;
       while (buf < defined_end) {
         if (!isIdent(*buf, buf - macro_start)) {
@@ -215,10 +214,12 @@ int evalifexpr(char *buf, char *end, eval_t *result)
   assert(result != NULL);
   *result = 0;
 
+  DPRINT("ifEvalpre: %s\n", buf);
   if (check_defined(buf, end) != 0 || processBuffer(buf, end - buf) != 0) {
     return -1;
   }
   stripspaces(buf);
+  DPRINT("ifEvalpost: %s\n", buf);
 
   astnode_t *node = evalexpr(&buf);
   node = evalnode(getroot(node), 1);
@@ -327,10 +328,6 @@ int processcmdline(char *buf, int size)
     }
     if (cmdcond->state == COND_IF) {
       if (cmd == ELIF) {
-        if (cmdcond->state != COND_IF) {
-          fprintf(stderr, "elif without if\n");
-          return -1;
-        }
         if (evalifexpr(buf + 1, end, &result) != 0) {
           DPRINT("Error evaluating if expression\n");
           return -1;
@@ -353,6 +350,7 @@ int processcmdline(char *buf, int size)
         condstate = 1;
       }
       if (cmd == ELIF || cmd == ELSE) {
+        DPRINT("Error: unexpected else or elif\n");
         return -1;
       }
     }
@@ -376,6 +374,7 @@ int processcmdline(char *buf, int size)
     case DEFINE:
       DPRINT("Define: %s\n", buf + 1);
       addMacro(buf + 1);
+      // printMacroList();  // @todo remove
       break;
     case UNDEF:
       DPRINT("Undef: %s\n", buf + 1);
@@ -383,9 +382,9 @@ int processcmdline(char *buf, int size)
       break;
     case IF:
     {
-      DPRINT("If: %s\n", buf + 1);
       cmdcond_t *tmp = malloc(sizeof(cmdcond_t));
       tmp->state = COND_IF;
+      DPRINT("If: %s\n", buf + 1);
       if (evalifexpr(buf + 1, end, &result) != 0) {
         return -1;
       }
@@ -398,26 +397,26 @@ int processcmdline(char *buf, int size)
     }
     case IFDEF:
     {
-      DPRINT("Ifdef: %d\n", isdefinedMacro(buf + 1, buf + strlen(buf + 1)));
       cmdcond_t *tmp = malloc(sizeof(cmdcond_t));
       tmp->state = COND_IF;
-      tmp->ifstate = isdefinedMacro(buf + 1, buf + strlen(buf + 1));
+      tmp->ifstate = isdefinedMacro(buf + 1, buf + 1 + strlen(buf + 1));
       tmp->prev = cmdcond;
       cmdcond = tmp;
       condstate = tmp->ifstate;
       ifdepth = 0;
+      DPRINT("Ifdef: %s %d\n", buf + 1, tmp->ifstate);
       break;
     }
     case IFNDEF:
     {
-      DPRINT("Ifndef: %d\n", !isdefinedMacro(buf + 1, buf + strlen(buf + 1)));
       cmdcond_t *tmp = malloc(sizeof(cmdcond_t));
       tmp->state = COND_IF;
-      tmp->ifstate = !isdefinedMacro(buf + 1, buf + strlen(buf + 1));
+      tmp->ifstate = !isdefinedMacro(buf + 1, buf + 1 + strlen(buf + 1));
       tmp->prev = cmdcond;
       cmdcond = tmp;
       condstate = tmp->ifstate;
       ifdepth = 0;
+      DPRINT("Ifndef: %s %d\n", buf + 1, tmp->ifstate);
       break;
     }
     case ELSE:
