@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-
+#define NDEBUG
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>

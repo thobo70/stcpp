@@ -59,7 +59,7 @@
  * is a valid identifier character, and print the list of macros.
  *
  */
-
+#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

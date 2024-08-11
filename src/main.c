@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-
+#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
   }
 
 
-  if (newinstream(infname, 1) != 0) {
+  if (newinstream(strdup(infname), 1) != 0) {
     return 1;
   }
 
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     if (iscmdline(buf)) {
       if (processcmdline(buf, sizeof(buf)) != 0) {
         printf("Error processing command line\n");
-        instream_t *in = getcurrentinstream();
+        // instream_t *in = getcurrentinstream();
         DPRINT("%s(%d, %d): %s\n", in->fname, in->line, in->col, strerror(in->error));
         break;
       }

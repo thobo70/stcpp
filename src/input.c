@@ -47,6 +47,7 @@ int addsearchdir(const char *path)
   dir->next = sdirs;
   dir->path = path;
   sdirs = dir;
+  DPRINT("Added search directory %s\n", path);
   return 0;
 }
 
@@ -61,12 +62,6 @@ int initsearchdirs()
   }
 
   //* @todo: check if copy of environment variable is necessary
-  /*
-  cpath = strdup(cpath);
-  if (cpath == NULL) {
-    return -1;
-  }
-  */
 
   char *p = strtok(cpath, ":");
   while (p != NULL) {
@@ -102,7 +97,7 @@ char *checkpath(const char *fname, int flag)
     }
     strcat(pathname, fname);
     // cppcheck-suppress syntaxError
-    DPRINT("Checking %s\n", pathname);
+    // DPRINT("Checking %s\n", pathname);
     if (access(pathname, R_OK) == 0) {
       return pathname;
     }
@@ -119,6 +114,7 @@ void releaseinstream(instream_t *in)
   if (in == NULL) {
     return;
   }
+  DPRINT("Releasing current instream '%s'\n", in->fname);
   if (in->file != NULL) {
     fclose(in->file);
   }
@@ -127,6 +123,9 @@ void releaseinstream(instream_t *in)
   }
   if (currentinstream == in) {
     currentinstream = in->parent;
+    if (currentinstream != NULL) {
+      DPRINT("Current instream is now '%s'\n", currentinstream->fname);
+    }
   }
   free(in);
 }
@@ -136,6 +135,7 @@ void releaseinstream(instream_t *in)
 int newinstream(const char *fname, int flag)
 {
   char *pathname = checkpath(fname, flag);
+  DPRINT("Opening file %s\n", pathname);
   if (pathname == NULL) {
     fprintf(stderr, "File not found: %s\n", fname);
     return -1;
@@ -299,7 +299,7 @@ int readchar(instream_t *in)
 
 int readline(instream_t *in, char *buf, int size)
 {
-  char *start = buf, *end = buf + size - 1;
+  char *end = buf + size - 1;
   int c;
 
   if (in == NULL) {
@@ -309,10 +309,11 @@ int readline(instream_t *in, char *buf, int size)
     return -1;
   }
   if (in->eof) {
-    if (in->parent == NULL) {
-      return 1;
+    releaseinstream(in);
+    in = currentinstream;
+    if (in == NULL) {
+      return -1;
     }
-    currentinstream = in->parent;
   }
 
   while (buf < end) {
@@ -320,17 +321,10 @@ int readline(instream_t *in, char *buf, int size)
     if (c < 0) {
       return c;
     }
-    if (c == '\n') {
-      *buf = '\0';
-      if (buf > start) {
-        return 0;
-      }
-      continue;
+    if (c == '\n' || c == 0) {
+      break;
     }
     *buf++ = c;
-    if (c == 0) {
-      return 1;
-    }
   }
   *buf = '\0';
   return 0;

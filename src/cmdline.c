@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-
+#define NDEBUG
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -228,7 +228,7 @@ int evalifexpr(char *buf, char *end, eval_t *result)
   *result = (node->val != 0);
   freenode(node);
 
-  printf("ifEvalResult: %d\n", *result);
+  DPRINT("ifEvalResult: %ld\n", *result);
 
   return 0;
 }
@@ -288,6 +288,8 @@ int processcmdline(char *buf, int size)
   char *end = buf + size - 1;
   char *start = ++buf;  // skip the '#'
   char *strend = start + strlen(start);
+  eval_t result;
+  static int ifdepth = 0;  // depth of nested if statements in case of ignored commands
 
   if (buf >= end || strend >= end) {
     return -1;  // error
@@ -308,9 +310,32 @@ int processcmdline(char *buf, int size)
     return -1;
   }
   if (cmdcond != NULL) {
+    if (condstate == 0) {
+      if (cmd == IF || cmd == IFDEF || cmd == IFNDEF) {
+        ifdepth++;
+      } else if (cmd == ENDIF) {
+        if (ifdepth > 0) {
+          ifdepth--;
+        } else {
+          cmdcond_t *tmp = cmdcond;
+          cmdcond = cmdcond->prev;
+          free(tmp);
+          condstate = 1;
+        }
+      }
+      return 0;
+    }
     if (cmdcond->state == COND_IF) {
       if (cmd == ELIF) {
-        condstate = !cmdcond->ifstate;
+        if (cmdcond->state != COND_IF) {
+          fprintf(stderr, "elif without if\n");
+          return -1;
+        }
+        if (evalifexpr(buf + 1, end, &result) != 0) {
+          DPRINT("Error evaluating if expression\n");
+          return -1;
+        }
+        condstate = cmdcond->ifstate = result;
       } else if (cmd == ELSE) {
         condstate = !cmdcond->ifstate;
         cmdcond->state = COND_ELSE;
@@ -337,31 +362,30 @@ int processcmdline(char *buf, int size)
   }
   switch (cmd) {
     case EMPTY:
-      printf("empty cmd\n");
+      DPRINT("empty cmd\n");
       break;
     case INCLUDE:
       if (processBuffer(buf, end - buf) != 0) {
         return -1;
       }
-      printf("Include: %s\n", buf + 1);
+      DPRINT("Include: %s\n", buf + 1);
       if (do_include(buf + 1, end) != 0) {
         return -1;
       }
       break;
     case DEFINE:
-      printf("Define: %s\n", buf + 1);
+      DPRINT("Define: %s\n", buf + 1);
       addMacro(buf + 1);
       break;
     case UNDEF:
-      printf("Undef: %s\n", buf + 1);
+      DPRINT("Undef: %s\n", buf + 1);
       deleteMacro(buf + 1);
       break;
     case IF:
     {
-      printf("If: %s\n", buf + 1);
+      DPRINT("If: %s\n", buf + 1);
       cmdcond_t *tmp = malloc(sizeof(cmdcond_t));
       tmp->state = COND_IF;
-      eval_t result;
       if (evalifexpr(buf + 1, end, &result) != 0) {
         return -1;
       }
@@ -369,53 +393,56 @@ int processcmdline(char *buf, int size)
       tmp->prev = cmdcond;
       cmdcond = tmp;
       condstate = tmp->ifstate;
+      ifdepth = 0;
       break;
     }
     case IFDEF:
     {
-      printf("Ifdef: %d\n", isdefinedMacro(buf + 1, buf + strlen(buf + 1)));
+      DPRINT("Ifdef: %d\n", isdefinedMacro(buf + 1, buf + strlen(buf + 1)));
       cmdcond_t *tmp = malloc(sizeof(cmdcond_t));
       tmp->state = COND_IF;
       tmp->ifstate = isdefinedMacro(buf + 1, buf + strlen(buf + 1));
       tmp->prev = cmdcond;
       cmdcond = tmp;
       condstate = tmp->ifstate;
+      ifdepth = 0;
       break;
     }
     case IFNDEF:
     {
-      printf("Ifndef: %d\n", !isdefinedMacro(buf + 1, buf + strlen(buf + 1)));
+      DPRINT("Ifndef: %d\n", !isdefinedMacro(buf + 1, buf + strlen(buf + 1)));
       cmdcond_t *tmp = malloc(sizeof(cmdcond_t));
       tmp->state = COND_IF;
       tmp->ifstate = !isdefinedMacro(buf + 1, buf + strlen(buf + 1));
       tmp->prev = cmdcond;
       cmdcond = tmp;
       condstate = tmp->ifstate;
+      ifdepth = 0;
       break;
     }
     case ELSE:
-      printf("Else:\n");
+      DPRINT("Else:\n");
       break;
     case ELIF:
-      printf("Elif: %s\n", buf + 1);
-      condstate = isdefinedMacro(buf + 1, buf + strlen(buf + 1));   // @todo replace with eval(expression)
+      DPRINT("Elif: %s\n", buf + 1);
       break;
     case ENDIF:
+      DPRINT("Endif:\n");
       break;
     case ERROR:
-      printf("Error: %s\n", buf + 1);
+      DPRINT("Error: %s\n", buf + 1);
       break;
     case PRAGMA:
-      printf("Pragma: %s\n", buf + 1);
+      DPRINT("Pragma: %s\n", buf + 1);
       break;
     case LINE:
-      printf("Line: %s\n", buf + 1);
+      DPRINT("Line: %s\n", buf + 1);
       break;
     case UNKNOWN:
-      printf("Unknown: %s\n", buf + 1);
+      DPRINT("Unknown: %s\n", buf + 1);
       break;
     default:
-      printf("default: %s\n", buf + 1);
+      DPRINT("default: %s\n", buf + 1);
       break;
   }
   return 0;

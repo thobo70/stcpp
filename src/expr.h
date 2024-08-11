@@ -16,7 +16,7 @@
 #include <stdlib.h>
 
 
-typedef int eval_t;
+typedef long eval_t;
 
 typedef enum optoken {
   OP_MUL,
