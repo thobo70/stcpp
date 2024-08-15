@@ -199,6 +199,9 @@ int rawchar(instream_t *in)
 int preprocessedchar(instream_t *in)
 {
   assert(in != NULL);
+  if (in->eof) {
+    return 0;
+  }
   int c = rawchar(in);
   if (c < 0) {
     return c;
@@ -216,7 +219,7 @@ int preprocessedchar(instream_t *in)
   if (c == '/' && in->last != '\\') {
     c = rawchar(in);
     if (c == '/') {
-      while (c != '\n') {
+      while (c != '\n' && in->eof == 0) {
         c = rawchar(in);
         if (c < 0) {
           return c;
@@ -263,7 +266,7 @@ int preprocessedchar(instream_t *in)
     return c;
   }
   if (isspace(c)) {
-    while (isspace(c)) {
+    while (isspace(c) && in->eof == 0) {
       if (in->whitespaces) {
         c = rawchar(in);
         if (c < 0) {
@@ -286,6 +289,9 @@ int preprocessedchar(instream_t *in)
 int readchar(instream_t *in)
 {
   assert(in != NULL);
+  if (in->eof) {
+    return 0;
+  }
   int c = preprocessedchar(in);
   if (c < 0) {
     return c;

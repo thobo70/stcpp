@@ -214,12 +214,12 @@ int evalifexpr(char *buf, char *end, eval_t *result)
   assert(result != NULL);
   *result = 0;
 
-  DPRINT("ifEvalpre: %s\n", buf);
+  // DPRINT("ifEvalpre: %s\n", buf);
   if (check_defined(buf, end) != 0 || processBuffer(buf, end - buf) != 0) {
     return -1;
   }
   stripspaces(buf);
-  DPRINT("ifEvalpost: %s\n", buf);
+  // DPRINT("ifEvalpost: %s\n", buf);
 
   astnode_t *node = evalexpr(&buf);
   node = evalnode(getroot(node), 1);

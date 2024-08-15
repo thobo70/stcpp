@@ -90,14 +90,16 @@ int main(int argc, char *argv[])
   char buf[4096];
   int rtn;
   while ((rtn = readline(NULL, buf, sizeof(buf))) == 0) {
+    D(instream_t *in = getcurrentinstream())
     if (iscmdline(buf)) {
       if (processcmdline(buf, sizeof(buf)) != 0) {
         printf("Error processing command line\n");
-        instream_t *in = getcurrentinstream();
+        D(instream_t *in = getcurrentinstream())
         DPRINT("%s(%d, %d): %s\n", in->fname, in->line, in->col, strerror(in->error));
         break;
       }
     } else {
+      DPRINT("> %1d %03d: %s\n", condstate, in->line, buf);
       if (condstate == 0)
         continue;
       if (processBuffer(buf, sizeof(buf)) != 0) {
@@ -105,7 +107,6 @@ int main(int argc, char *argv[])
         break;
       }
       fputs(buf, outfile);
-      // printf("%1d %03d: %s\n", condstate, in.line, buf);
     }
   }
   if (rtn < 0) {
