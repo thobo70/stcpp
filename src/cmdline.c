@@ -313,11 +313,22 @@ int processcmdline(char *buf, int size)
   if (cmdcond != NULL) {
     if (condstate == 0) {
       if (cmd == IF || cmd == IFDEF || cmd == IFNDEF) {
+        DPRINT("Ignoring if statement\n");
         ifdepth++;
+      } else if (cmd == ELSE) {
+        if (ifdepth > 0) {
+          DPRINT("Ignoring else statement\n");
+        } else {
+          DPRINT("Else: %d\n", cmdcond->ifstate);
+          condstate = !cmdcond->ifstate;
+          cmdcond->state = COND_ELSE;
+        }
       } else if (cmd == ENDIF) {
         if (ifdepth > 0) {
+          DPRINT("Ignoring endif statement\n");
           ifdepth--;
         } else {
+          DPRINT("Endif: %d\n", cmdcond->ifstate);
           cmdcond_t *tmp = cmdcond;
           cmdcond = cmdcond->prev;
           free(tmp);
@@ -333,10 +344,13 @@ int processcmdline(char *buf, int size)
           return -1;
         }
         condstate = cmdcond->ifstate = result;
+        DPRINT("Elif: %d\n", cmdcond->ifstate);
       } else if (cmd == ELSE) {
         condstate = !cmdcond->ifstate;
         cmdcond->state = COND_ELSE;
+        DPRINT("Else: %d\n", cmdcond->ifstate);
       } else if (cmd == ENDIF) {
+        DPRINT("Endif: %d\n", cmdcond->ifstate);
         cmdcond_t *tmp = cmdcond;
         cmdcond = cmdcond->prev;
         free(tmp);

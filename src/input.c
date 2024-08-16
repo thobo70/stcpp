@@ -314,13 +314,6 @@ int readline(instream_t *in, char *buf, int size)
   if (in == NULL) {
     return -1;
   }
-  if (in->eof) {
-    releaseinstream(in);
-    in = currentinstream;
-    if (in == NULL) {
-      return -1;
-    }
-  }
 
   while (buf < end) {
     c = readchar(in);
@@ -333,5 +326,12 @@ int readline(instream_t *in, char *buf, int size)
     *buf++ = c;
   }
   *buf = '\0';
+  if (in->eof) {
+    releaseinstream(in);
+    in = currentinstream;
+    if (in == NULL) {
+      return -1;
+    }
+  }
   return 0;
 }

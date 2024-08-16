@@ -91,6 +91,9 @@ int main(int argc, char *argv[])
   int rtn;
   while ((rtn = readline(NULL, buf, sizeof(buf))) == 0) {
     D(instream_t *in = getcurrentinstream())
+    if (in->eof) {
+      break;
+    }
     if (iscmdline(buf)) {
       if (processcmdline(buf, sizeof(buf)) != 0) {
         printf("Error processing command line\n");
@@ -106,6 +109,7 @@ int main(int argc, char *argv[])
         printf("Error processing buffer\n");
         break;
       }
+      strcat(buf, "\n");
       fputs(buf, outfile);
     }
   }

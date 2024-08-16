@@ -3,7 +3,8 @@ BINDIR = ./bin
 SRCDIR = ./src
 OBJS = $(BINDIR)/expr.o $(BINDIR)/cmdline.o $(BINDIR)/input.o $(BINDIR)/macro.o $(BINDIR)/main.o
 TARGET = $(BINDIR)/stcpp
-CFLAGS = -g -Wall -Werror -Wextra -pedantic -Isrc
+CFLAGS = -g -Og -Wall -Werror -Wextra -pedantic -Isrc
+# CFLAGS = -DNDEBUG -Oz -Wall -Werror -Wextra -pedantic -Isrc
 
 
 .PHONY: all clean test target

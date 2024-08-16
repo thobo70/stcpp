@@ -1,4 +1,13 @@
-// test/test.c
+/**
+ * @file test.c
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-08-15
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "test.h"
 
 #define LOCAL_MACRO 200
@@ -8,50 +17,36 @@ void headerFunction() {
   // Custom implementation for testing
 }
 
-void wrong() {
+void wrong(int) {
   // Simulate incorrect behavior
   // This could be an incorrect calculation or a wrong output
 }
 
-void right() {
+void right(int) {
   // Simulate correct behavior
   // This could be a correct calculation or a correct output
 }
 
 int main() {
-  // Test defining a macro
-  #if defined(LOCAL_MACRO) && (LOCAL_MACRO == 200)
-  #define TEST_MACRO 1
-  #else
-  #define TEST_MACRO 0
-  #endif
-
-  // Test complex macro expressions
-  #if (COMPLEX_MACRO == 300)
-  #define COMPLEX_TEST 1
-  #else
-  #define COMPLEX_TEST 0
-  #endif
-
   // Test conditional compilation
-  #if TEST_MACRO
-  right();
+  #if defined(LOCAL_MACRO) && (LOCAL_MACRO == 200)
+  right(1);
   #else
-  wrong();
+  wrong(1);
   #endif
 
-  #if COMPLEX_TEST
-  right();
+  #if (COMPLEX_MACRO == 300)
+  right(2);
   #else
-  wrong();
+  wrong(2);
   #endif
 
   // Test undefining a macro
   #undef LOCAL_MACRO
   #if defined(LOCAL_MACRO)
-  wrong();
+  wrong(3);
   #else
-  right();
+  right(3);
   #endif
 
   // Test including a header file
@@ -59,9 +54,9 @@ int main() {
 
   // Test conditional compilation with undefined macro
   #ifdef UNDEFINED_MACRO
-  wrong();
+  wrong(4);
   #else
-  right();
+  right(4);
   #endif
 
   return 0;
