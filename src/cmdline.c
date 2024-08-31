@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-// #define NDEBUG
+#define NDEBUG
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -17,7 +17,7 @@
 #include "cmdline.h"
 #include "input.h"
 #include "macro.h"
-#include "expr.h"
+#include "exprint.h"
 
 
 
@@ -185,6 +185,7 @@ int check_defined(char *buf, char *end)
     }
   }
 
+  DPRINT("check_defined ok\n");
   return 0;
 }
 
@@ -207,27 +208,26 @@ void stripspaces(char *buf)
 
 
 
-int evalifexpr(char *buf, char *end, eval_t *result)
+int evalifexpr(char *buf, char *end, result_t *result)
 {
   assert(buf != NULL);
   assert(end != NULL);
   assert(result != NULL);
   *result = 0;
 
-  // DPRINT("ifEvalpre: %s\n", buf);
-  if (check_defined(buf, end) != 0 || processBuffer(buf, end - buf) != 0) {
+  DPRINT("ifEvalpre: %s\n", buf);
+  stripspaces(buf);
+  if (check_defined(buf, end) != 0 || processBuffer(buf, end - buf, 1) != 0) {
     return -1;
   }
   stripspaces(buf);
-  // DPRINT("ifEvalpost: %s\n", buf);
+  DPRINT("ifEvalpost: %s\n", buf);
 
-  astnode_t *node = evalexpr(&buf);
-  node = evalnode(getroot(node), 1);
-  if (node == NULL || node->opinfo->token != OP_NUM) {
+  *result = evaluate_expression(buf);
+  if (expr_error != EE_OK) {
+    DPRINT("Error evaluating if expression %d\n", expr_error);
     return -1;
   }
-  *result = (node->val != 0);
-  freenode(node);
 
   DPRINT("ifEvalResult: %ld\n", *result);
 
@@ -289,7 +289,7 @@ int processcmdline(char *buf, int size)
   char *end = buf + size - 1;
   char *start = ++buf;  // skip the '#'
   char *strend = start + strlen(start);
-  eval_t result;
+  result_t result;
   static int ifdepth = 0;  // depth of nested if statements in case of ignored commands
 
   if (buf >= end || strend >= end) {
@@ -377,7 +377,7 @@ int processcmdline(char *buf, int size)
       DPRINT("empty cmd\n");
       break;
     case INCLUDE:
-      if (processBuffer(buf, end - buf) != 0) {
+      if (processBuffer(buf, end - buf, 0) != 0) {
         return -1;
       }
       DPRINT("Include: %s\n", buf + 1);

@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
-// #define NDEBUG
+#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -90,14 +90,13 @@ int main(int argc, char *argv[])
   char buf[4096];
   int rtn;
   while ((rtn = readline(NULL, buf, sizeof(buf))) == 0) {
-    D(instream_t *in = getcurrentinstream())
+    instream_t *in = getcurrentinstream();
     if (in->eof) {
       break;
     }
     if (iscmdline(buf)) {
       if (processcmdline(buf, sizeof(buf)) != 0) {
         printf("Error processing command line\n");
-        D(instream_t *in = getcurrentinstream())
         DPRINT("%s(%d, %d): %s\n", in->fname, in->line, in->col, strerror(in->error));
         break;
       }
@@ -105,7 +104,7 @@ int main(int argc, char *argv[])
       DPRINT("> %1d %03d: %s\n", condstate, in->line, buf);
       if (condstate == 0)
         continue;
-      if (processBuffer(buf, sizeof(buf)) != 0) {
+      if (processBuffer(buf, sizeof(buf), 0) != 0) {
         printf("Error processing buffer\n");
         break;
       }

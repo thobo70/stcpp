@@ -59,7 +59,7 @@
  * is a valid identifier character, and print the list of macros.
  *
  */
-// #define NDEBUG
+#define NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -164,7 +164,7 @@ char *skipNumber(char *buf, char *end)
     char c = tolower(*buf);
     if (c == 'u' || c == 'l') {
       return ++buf;
-    } 
+    }
     if (!isdigit(c) && c != 'x' && c != 'a' && c != 'b' && c != 'c' && c != 'd' && c != 'e' && c != 'f') {
       break;
     }
@@ -646,11 +646,12 @@ char *findEndOfParameter(char *buf, char *end) {
  * 
  * @param buf Pointer to the start of the buffer.
  * @param len Length of the buffer.
+ * @param ifclausemode Flag indicating if the macro is inside an #if clause.
  * @return 0 if the macro was successfully processed, -1 if an error occurred, or the number of characters processed if no macro was found.
  */
-int processMacro(char *buf, int len)
+int processMacro(char *buf, int len, int ifclausemode)
 {
-  char *start = buf, *end = buf + len;
+  char * const start = buf, *end = buf + len;
   Macro *parammacrolist = NULL;
 
   while (buf <= end && isIdent(*buf, buf - start)) {
@@ -661,14 +662,20 @@ int processMacro(char *buf, int len)
   }
   Macro *macro = findMacro(start, buf);
   if (macro == NULL) {  // no macro found
+    if (*buf == '(') {  // skip functional macro
+      buf = skipExpression(buf, end);
+    }
+    if (ifclausemode)
+      buf = replaceBuf(start, buf, end, "0");
     return buf - start;
   }
-
+  DPRINT("processMacro: found %s\n", macro->name);
   MacroParam *param = macro->param;
   if (param != NULL) {  // functional macro
     Macro *parammacro = NULL;
     // check for '(', there are no white spaces allowed
     if (*buf != '(') {
+      DPRINT("processMacro: missing '(' for macro %s\n", macro->name);
       return -1;
     }
     buf++;
@@ -685,22 +692,22 @@ int processMacro(char *buf, int len)
       }
 
       if (*buf == ')') {
-        if (param->next != NULL) {  // error not enough parameters
-          return -1;
-        }
         if (param->name == NULL) {  // functional macro without parameter
           if (buf == paramstart) {
             break;
           } else {
+            DPRINT("processMacro: error no parameter expected\n");
             return -1;  // error extra parameter in functional macro not expected
           }
         } else {
           if (param->next != NULL) {  // error not enough parameters
+            DPRINT("processMacro: error not enough parameters\n");
             return -1;
           }
         }
       } else if (*buf == ',') {
         if (param->next == NULL) {  // error too many parameters
+          DPRINT("processMacro: error too many parameters\n");
           return -1;
         }
       }
@@ -723,6 +730,10 @@ int processMacro(char *buf, int len)
     }
   }
 
+  if (ifclausemode && (macro->replace == NULL || *macro->replace == '\0')) {
+    buf = replaceBuf(start, buf, end, "0");
+    return 0;
+  }
   buf = replaceBuf(start, buf, end, macro->replace);
   if (buf == NULL) {  // buffer too small
     return -1;
@@ -763,7 +774,7 @@ int processMacro(char *buf, int len)
   }
 
   removeDoubleHash(start, buf);
-
+  DPRINT("processMacro done: %s\n", start);
   return 0;
 }
 
@@ -782,7 +793,7 @@ int processMacro(char *buf, int len)
  * @param len Length of the buffer.
  * @return 0 if the buffer was successfully processed, -1 if an error occurred.
  */
-int processBuffer(char *buf, int len)
+int processBuffer(char *buf, int len, int ifclausemode)
 {
   // Scan buf to recognize macros
   char *start = buf, *end = buf + len;
@@ -790,21 +801,28 @@ int processBuffer(char *buf, int len)
   while (buf < end && *buf != '\0') {
     buf = skipSpaces(buf, end);  // skip preceding spaces
     if (isIdent(*buf, 0)) {
-      int cnt = processMacro(buf, end - buf);
+      DPRINT("processBuffer next: %.*s\n", (int)(end - buf), buf);
+      int cnt = processMacro(buf, end - buf, ifclausemode);
+      DPRINT("processBuffer next done: %s\n", buf);
       if (cnt < 0) {
+        DPRINT("processBuffer: failed %d\n", cnt);
         return cnt;
       }
       buf += cnt;
       continue;
     }
     // skip string
-    if (*buf == '\"' && !(buf > start && *(buf - 1) == '\\'))
+    if (*buf == '\"' && !(buf > start && *(buf - 1) == '\\')) {
       buf = skipString(buf, end);
+      continue;
+    }
     // ignore char
     if (isdigit(*buf)) {
       buf = skipNumber(buf, end);
+      continue;
     }
     buf++;
   }
+  DPRINT("processBuffer done: %s\n", start);
   return 0;
 }

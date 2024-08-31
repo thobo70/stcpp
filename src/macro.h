@@ -15,7 +15,7 @@
 // Function prototypes
 int addMacro(char *buf);
 int deleteMacro(char *buf);
-int processBuffer(char *buf, int len);
+int processBuffer(char *buf, int len, int ifclausemode);
 void printMacroList();
 int isdefinedMacro(char *start, char *end);
 int isIdent(char c, int idx);

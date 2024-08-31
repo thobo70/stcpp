@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2024
  * 
  */
+#define NDEBUG
 
 #include <ctype.h>
 #include <errno.h>
@@ -135,11 +136,11 @@ void releaseinstream(instream_t *in)
 int newinstream(const char *fname, int flag)
 {
   char *pathname = checkpath(fname, flag);
-  DPRINT("Opening file %s\n", pathname);
   if (pathname == NULL) {
     fprintf(stderr, "File not found: %s\n", fname);
     return -1;
   }
+  DPRINT("Opening file %s\n", pathname);
   instream_t *in = malloc(sizeof(instream_t));
   if (in == NULL) {
     return -1;
