@@ -1,4 +1,5 @@
 bin/*
+doc/*
 .vscode/*
 test.out
 err.log

@@ -1,0 +1,15 @@
+# Doxyfile
+
+# Project related settings
+PROJECT_NAME           = "stcpp"
+PROJECT_NUMBER         = "1.0"
+OUTPUT_DIRECTORY       = "doc"
+GENERATE_HTML          = YES
+HTML_OUTPUT            = "html"
+
+# Input related settings
+INPUT                  = src
+FILE_PATTERNS          = *.c *.h
+RECURSIVE              = YES
+
+# Other settings can be customized as needed

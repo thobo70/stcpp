@@ -19,15 +19,7 @@
 #include "macro.h"
 #include "cmdline.h"
 
-/*
-write a function that takes the command line arguments and processes them
-command line options: cpp [-Dname[=value]] [-Uname] [-Ipath] infile outfile
-if infile is specified with '-', stdin is used
-if outfile is specified with '-', stdout is used
--Dname: Define a macro named name with a value of 1. You can also specify a value with -Dname=value.
--Uname: Undefine the macro name.
--Ipath: Add the directory path to the list of directories to be searched for header files.
-*/
+
 
 int main(int argc, char *argv[])
 {

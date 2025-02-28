@@ -1,13 +1,18 @@
 /**
  * @file input.c
  * @author Thomas Boos (tboos70@gmail.com)
- * @brief 
+ * @brief This file contains functions for managing input streams.
  * @version 0.1
  * @date 2024-08-07
  * 
  * @copyright Copyright (c) 2024
  * 
+ * This file contains functions for managing input streams, including
+ * adding search directories, initializing search directories, checking
+ * file paths, and reading characters from input streams.
+ * 
  */
+
 #define NDEBUG
 
 #include <ctype.h>
@@ -19,27 +24,36 @@
 #include "debug.h"
 #include "input.h"
 
-
-
+/**
+ * @brief Structure representing a search directory.
+ */
 typedef struct sdir {
-  struct sdir *next;
-  const char *path;
+  struct sdir *next; /**< Pointer to the next search directory. */
+  const char *path;  /**< Path of the search directory. */
 } sdir_t;
 
-sdir_t *sdirs = NULL;
+sdir_t *sdirs = NULL; /**< Head of the linked list of search directories. */
+instream_t *currentinstream = NULL; /**< Pointer to the current input stream. */
 
-instream_t *currentinstream = NULL;
-
-
-instream_t *getcurrentinstream()
-{
+/**
+ * @brief Gets the current input stream.
+ * 
+ * @return Pointer to the current input stream.
+ */
+instream_t *getcurrentinstream() {
   return currentinstream;
 }
 
-
-
-int addsearchdir(const char *path)
-{
+/**
+ * @brief Adds a search directory to the list of search directories.
+ * 
+ * This function allocates memory for a new search directory structure,
+ * sets its path, and adds it to the head of the linked list of search directories.
+ * 
+ * @param path Path of the search directory to add.
+ * @return 0 on success, -1 on failure.
+ */
+int addsearchdir(const char *path) {
   assert(path != NULL);
   sdir_t *dir = malloc(sizeof(sdir_t));
   if (dir == NULL) {
@@ -52,10 +66,15 @@ int addsearchdir(const char *path)
   return 0;
 }
 
-
-
-int initsearchdirs()
-{
+/**
+ * @brief Initializes the list of search directories from the CPATH environment variable.
+ * 
+ * This function reads the CPATH environment variable, splits it into individual
+ * directory paths, and adds each path to the list of search directories.
+ * 
+ * @return 0 on success, -1 on failure.
+ */
+int initsearchdirs() {
   char *cpath = getenv("CPATH");
   if (cpath == NULL) {
     printf("CPATH not set\n");
@@ -74,14 +93,21 @@ int initsearchdirs()
   return 0;
 }
 
-
-
-char *checkpath(const char *fname, int flag)
-{
+/**
+ * @brief Checks if a file exists in the current directory or any of the search directories.
+ * 
+ * This function checks if the specified file exists and is readable in the current directory
+ * or any of the search directories. If the file is found, it returns the full path to the file.
+ * 
+ * @param fname Name of the file to check.
+ * @param flag If non-zero, check the current directory first.
+ * @return Pointer to the full path of the file if found, NULL otherwise.
+ */
+char *checkpath(const char *fname, int flag) {
   if (fname == NULL) {
     return NULL;
   }
-  // @todo: if original source file is not in current directory, add path to fname
+// @todo: if original source file is not in current directory, add path to fname
   if (flag != 0 && access(fname, R_OK) == 0) {
     return strdup(fname);
   }
@@ -108,10 +134,16 @@ char *checkpath(const char *fname, int flag)
   return NULL;
 }
 
-
-
-void releaseinstream(instream_t *in)
-{
+/**
+ * @brief Releases the resources associated with an input stream.
+ * 
+ * This function closes the file associated with the input stream, frees the memory
+ * allocated for the file name, and updates the current input stream to the parent
+ * input stream if applicable.
+ * 
+ * @param in Pointer to the input stream to release.
+ */
+void releaseinstream(instream_t *in) {
   if (in == NULL) {
     return;
   }
@@ -131,10 +163,18 @@ void releaseinstream(instream_t *in)
   free(in);
 }
 
-
-
-int newinstream(const char *fname, int flag)
-{
+/**
+ * @brief Creates a new input stream for the specified file.
+ * 
+ * This function checks if the specified file exists and is readable, opens the file,
+ * and initializes a new input stream structure. The new input stream is added to the
+ * linked list of input streams.
+ * 
+ * @param fname Name of the file to open.
+ * @param flag If non-zero, check the current directory first.
+ * @return 0 on success, -1 on failure.
+ */
+int newinstream(const char *fname, int flag) {
   char *pathname = checkpath(fname, flag);
   if (pathname == NULL) {
     fprintf(stderr, "File not found: %s\n", fname);
@@ -170,10 +210,16 @@ int newinstream(const char *fname, int flag)
   return 0;
 }
 
-
-
-int rawchar(instream_t *in)
-{
+/**
+ * @brief Reads a raw character from the input stream.
+ * 
+ * This function reads a single character from the input stream without any preprocessing.
+ * It updates the line and column numbers and handles end-of-file and error conditions.
+ * 
+ * @param in Pointer to the input stream.
+ * @return The character read, or 0 on end of file, or a negative value on error.
+ */
+int rawchar(instream_t *in) {
   assert(in != NULL);
   if (in->eof) {
     return 0;
@@ -195,10 +241,16 @@ int rawchar(instream_t *in)
   return c;
 }
 
-
-
-int preprocessedchar(instream_t *in)
-{
+/**
+ * @brief Reads a preprocessed character from the input stream.
+ * 
+ * This function reads a character from the input stream and applies preprocessing,
+ * such as handling string literals, comments, and line continuations.
+ * 
+ * @param in Pointer to the input stream.
+ * @return The character read, or 0 on end of file, or a negative value on error.
+ */
+int preprocessedchar(instream_t *in) {
   assert(in != NULL);
   if (in->eof) {
     return 0;
@@ -285,10 +337,16 @@ int preprocessedchar(instream_t *in)
   return c;
 }
 
-
-
-int readchar(instream_t *in)
-{
+/**
+ * @brief Reads a character from the input stream, applying preprocessing.
+ * 
+ * This function reads a character from the input stream, applies preprocessing,
+ * and updates the last character read.
+ * 
+ * @param in Pointer to the input stream.
+ * @return The character read, or 0 on end of file, or a negative value on error.
+ */
+int readchar(instream_t *in) {
   assert(in != NULL);
   if (in->eof) {
     return 0;
@@ -302,10 +360,19 @@ int readchar(instream_t *in)
   return c;
 }
 
-
-
-int readline(instream_t *in, char *buf, int size)
-{
+/**
+ * @brief Reads a line from the input stream into a buffer.
+ * 
+ * This function reads characters from the input stream into the specified buffer
+ * until a newline character or end of file is encountered. It handles preprocessing
+ * and updates the current input stream if necessary.
+ * 
+ * @param in Pointer to the input stream.
+ * @param buf Buffer to store the line.
+ * @param size Size of the buffer.
+ * @return 0 on success, -1 on failure.
+ */
+int readline(instream_t *in, char *buf, int size) {
   char *end = buf + size - 1;
   int c;
 
