@@ -694,6 +694,7 @@ int processMacro(char *buf, int len, int ifclausemode)
       if (*buf == ')') {
         if (param->name == NULL) {  // functional macro without parameter
           if (buf == paramstart) {
+            buf++;  // Advance past the closing )
             break;
           } else {
             DPRINT("processMacro: error no parameter expected\n");
@@ -732,7 +733,7 @@ int processMacro(char *buf, int len, int ifclausemode)
 
   if (ifclausemode && (macro->replace == NULL || *macro->replace == '\0')) {
     buf = replaceBuf(start, buf, end, "0");
-    return 0;
+    return buf - start;  // Return position after replacement
   }
   buf = replaceBuf(start, buf, end, macro->replace);
   if (buf == NULL) {  // buffer too small
@@ -775,7 +776,7 @@ int processMacro(char *buf, int len, int ifclausemode)
 
   removeDoubleHash(start, buf);
   DPRINT("processMacro done: %s\n", start);
-  return 0;
+  return buf - start;  // Return new offset from start
 }
 
 
