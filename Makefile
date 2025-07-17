@@ -6,7 +6,7 @@ TARGET = $(BINDIR)/stcpp
 CFLAGS = -g -Og -Wall -Werror -Wextra -pedantic -Isrc
 # CFLAGS = -DNDEBUG -Oz -Wall -Werror -Wextra -pedantic -Isrc
 
-.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include doc lint
+.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include test-token-pasting doc lint
 
 all: target
 
@@ -69,6 +69,12 @@ test-include: target
 	./$(TARGET) -Itest test/test_include.c test_results/test_include.out
 	@echo "Output:"
 	@head -20 test_results/test_include.out
+
+test-token-pasting: target
+	@echo "Testing token pasting (##) operator..."
+	./$(TARGET) -Itest test/test_token_pasting.c test_results/test_token_pasting.out
+	@echo "Output:"
+	@head -20 test_results/test_token_pasting.out
 
 # Create test results directory
 test_results:

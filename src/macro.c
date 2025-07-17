@@ -585,27 +585,84 @@ char *replaceBuf(char *start, char *buf, char *end, char *replace)
 
 
 /**
- * @brief Removes double hash (##) tokens from a macro.
+ * @brief Implements token pasting (##) operator.
  * 
- * This function takes a pointer to a buffer and a pointer to the end of the macro in the buffer.
- * It scans the buffer for double hash (##) tokens and removes them by shifting the remaining
- * contents of the buffer to the left. The end of the string in the buffer is updated accordingly.
+ * This function finds ## operators in the macro expansion result and concatenates
+ * the tokens on either side of them. This is called after parameter substitution
+ * to perform the final token pasting step.
  * 
  * @param buf Pointer to the start of the buffer.
  * @param endmacro Pointer to the end of the macro in the buffer.
  */
 void removeDoubleHash(char *buf, char *endmacro)
 {
-  char *endstr = endmacro + strlen(endmacro);
+  char *paste_pos = buf;
 
-  while (buf < endmacro) {
-    if (*buf == '#' && *(buf + 1) == '#') {
-      // remove both '#'
-      memmove(buf, buf + 2, endstr - buf - 2);
-      endstr -= 2;
-      endmacro -= 2;
+  while (paste_pos < endmacro - 1) {
+    if (*paste_pos == '#' && *(paste_pos + 1) == '#') {
+      // Find the end of the left token (skip backwards over whitespace)
+      char *left_end = paste_pos - 1;
+      while (left_end >= buf && isspace(*left_end)) {
+        left_end--;
+      }
+      
+      // Find the start of the left token
+      char *left_start = left_end;
+      while (left_start > buf && (isalnum(*(left_start - 1)) || *(left_start - 1) == '_')) {
+        left_start--;
+      }
+      
+      // Find the start of the right token (skip forwards over whitespace)
+      char *right_start = paste_pos + 2;
+      while (right_start < endmacro && isspace(*right_start)) {
+        right_start++;
+      }
+      
+      // Find the end of the right token
+      char *right_end = right_start;
+      while (right_end < endmacro && (isalnum(*right_end) || *right_end == '_')) {
+        right_end++;
+      }
+      
+      if (left_start <= left_end && right_start < right_end) {
+        // Calculate sizes
+        int left_len = left_end - left_start + 1;
+        int right_len = right_end - right_start;
+        int paste_section_len = right_end - left_start;  // Total section being replaced
+        int new_len = left_len + right_len;  // Length after pasting
+        
+        // Create the pasted token
+        char pasted[256];  // Temporary buffer for pasted token
+        if ((size_t)new_len < sizeof(pasted)) {
+          strncpy(pasted, left_start, left_len);
+          strncpy(pasted + left_len, right_start, right_len);
+          pasted[new_len] = '\0';
+          
+          // Calculate how much content follows the right token
+          char *end_of_buffer = endmacro + strlen(endmacro);
+          int remaining_len = end_of_buffer - right_end;
+          
+          // Replace the entire section (left_token ## right_token) with pasted token
+          int size_diff = new_len - paste_section_len;
+          if (size_diff != 0) {
+            memmove(left_start + new_len, right_end, remaining_len + 1);
+          }
+          
+          // Copy the pasted token into position
+          memcpy(left_start, pasted, new_len);
+          
+          // Continue from after the pasted token
+          paste_pos = left_start + new_len;
+        } else {
+          // Token too long, just remove the ##
+          memmove(paste_pos, paste_pos + 2, strlen(paste_pos + 2) + 1);
+        }
+      } else {
+        // Invalid pasting context, just remove the ##
+        memmove(paste_pos, paste_pos + 2, strlen(paste_pos + 2) + 1);
+      }
     } else {
-      buf++;
+      paste_pos++;
     }
   }
 }
@@ -737,6 +794,7 @@ int processMacro(char *buf, int len, int ifclausemode)
     buf = replaceBuf(start, buf, end, "0");
     return buf - start;  // Return position after replacement
   }
+  
   buf = replaceBuf(start, buf, end, macro->replace);
   if (buf == NULL) {  // buffer too small
     return -1;

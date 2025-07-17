@@ -95,6 +95,13 @@ run_test "File Inclusion" "test_include.c" \
     "(25 + 50)" \
     "((10) \* 2)"
 
+# Test 7: Token pasting (##) operator
+run_test "Token Pasting" "test_token_pasting.c" \
+    "int helloworld = 42" \
+    "int var1 = 100" \
+    "int var42 = 200" \
+    "int xyz = 999"
+
 echo ""
 echo "=================================="
 echo "Test Summary"
