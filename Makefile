@@ -6,7 +6,7 @@ TARGET = $(BINDIR)/stcpp
 CFLAGS = -g -Og -Wall -Werror -Wextra -pedantic -Isrc
 # CFLAGS = -DNDEBUG -Oz -Wall -Werror -Wextra -pedantic -Isrc
 
-.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include doc
+.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include doc lint
 
 all: target
 
@@ -73,6 +73,19 @@ test-include: target
 # Create test results directory
 test_results:
 	mkdir -p test_results
+
+# Static analysis and linting
+lint:
+	@echo "Running cpplint on source files..."
+	@if command -v cpplint >/dev/null 2>&1; then \
+		echo "Running cpplint..."; \
+		cpplint --filter=-whitespace/tab,-build/include_subdir $(SRCDIR)/*.c $(SRCDIR)/*.h 2>&1 | grep -v "Done processing" || true; \
+		echo ""; \
+		echo "Use 'cpplint --help' for filtering options if needed."; \
+	else \
+		echo "cpplint not found. Install with: pip install cpplint"; \
+	fi
+	@echo "Lint check complete."
 
 test2: target
 	./$(TARGET) -I/usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I /usr/local/include -I /usr/include/x86_64-linux-gnu -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I /usr/local/include -I /usr/include/x86_64-linux-gnu -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I /usr/local/include -I /usr/include/x86_64-linux-gnu -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I /usr/local/include -I /usr/include/x86_64-linux-gnu -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux -I src -D "__STDC__ 1" -D "__STDC_VERSION__ 1" src/main.c test.out
