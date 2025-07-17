@@ -6,7 +6,7 @@ TARGET = $(BINDIR)/stcpp
 CFLAGS = -g -Og -Wall -Werror -Wextra -pedantic -Isrc
 # CFLAGS = -DNDEBUG -Oz -Wall -Werror -Wextra -pedantic -Isrc
 
-.PHONY: all clean test test2 target doc
+.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include doc
 
 all: target
 
@@ -22,10 +22,57 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 	
 clean:
-	rm -rf $(BINDIR) test.out doc
+	rm -rf $(BINDIR) test.out test_results doc
 
+# Original test (for backward compatibility)
 test: target
 	./$(TARGET) -Itest -D "__STDC__ 1" -D "__STDC_VERSION__ 1" test/test.c test.out
+
+# Comprehensive test suite
+test-all: $(TARGET)
+	@echo "Running comprehensive test suite..."
+	@./test/run_tests.sh
+
+# Individual test targets
+test-basic: target
+	@echo "Testing basic macro functionality..."
+	./$(TARGET) -Itest test/test_basic.c test_results/test_basic.out
+	@echo "Output:"
+	@head -20 test_results/test_basic.out
+
+test-recursive: target
+	@echo "Testing recursive macro expansion..."
+	./$(TARGET) -Itest test/test_recursive.c test_results/test_recursive.out
+	@echo "Output:"
+	@head -20 test_results/test_recursive.out
+
+test-edge: target
+	@echo "Testing edge cases..."
+	./$(TARGET) -Itest test/test_edge_cases.c test_results/test_edge_cases.out
+	@echo "Output:"
+	@head -20 test_results/test_edge_cases.out
+
+test-conditionals: target
+	@echo "Testing conditional compilation..."
+	./$(TARGET) -Itest test/test_conditionals.c test_results/test_conditionals.out
+	@echo "Output:"
+	@head -20 test_results/test_conditionals.out
+
+test-undef: target
+	@echo "Testing #undef functionality..."
+	./$(TARGET) -Itest test/test_undef.c test_results/test_undef.out
+	@echo "Output:"
+	@head -20 test_results/test_undef.out
+
+test-include: target
+	@echo "Testing file inclusion..."
+	./$(TARGET) -Itest test/test_include.c test_results/test_include.out
+	@echo "Output:"
+	@head -20 test_results/test_include.out
+
+# Create test results directory
+test_results:
+	mkdir -p test_results
 
 test2: target
 	./$(TARGET) -I/usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I /usr/local/include -I /usr/include/x86_64-linux-gnu -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I /usr/local/include -I /usr/include/x86_64-linux-gnu -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I /usr/local/include -I /usr/include/x86_64-linux-gnu -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include -I /usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed -I /usr/local/include -I /usr/include/x86_64-linux-gnu -I /usr/include -I /usr/include/x86_64-linux-gnu -I /usr/include/c++/4.8 -I /usr/include/c++/4.8/x86_64-linux-gnu -I /usr/include/c++/4.8/backward -I /usr/lib/gcc/x86_64-linux -I src -D "__STDC__ 1" -D "__STDC_VERSION__ 1" src/main.c test.out

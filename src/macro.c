@@ -101,6 +101,7 @@ typedef struct macro {
 
 
 Macro *macroList = NULL;
+static int macro_expanded = 0;  // Flag to track if macro expansion occurred
 
 
 
@@ -670,6 +671,7 @@ int processMacro(char *buf, int len, int ifclausemode)
     return buf - start;
   }
   DPRINT("processMacro: found %s\n", macro->name);
+  macro_expanded = 1;  // Mark that a macro was expanded
   MacroParam *param = macro->param;
   if (param != NULL) {  // functional macro
     Macro *parammacro = NULL;
@@ -798,18 +800,37 @@ int processBuffer(char *buf, int len, int ifclausemode)
 {
   // Scan buf to recognize macros
   char *start = buf, *end = buf + len;
+  int restart_count = 0;
+  const int MAX_RESTARTS = 100;  // Prevent infinite loops
 
   while (buf < end && *buf != '\0') {
     buf = skipSpaces(buf, end);  // skip preceding spaces
     if (isIdent(*buf, 0)) {
       DPRINT("processBuffer next: %.*s\n", (int)(end - buf), buf);
+      char *macro_start = buf;
+      macro_expanded = 0;  // Reset flag
       int cnt = processMacro(buf, end - buf, ifclausemode);
       DPRINT("processBuffer next done: %s\n", buf);
       if (cnt < 0) {
         DPRINT("processBuffer: failed %d\n", cnt);
         return cnt;
       }
-      buf += cnt;
+      
+      if (macro_expanded) {  // A macro was expanded
+        // Restart processing from the beginning of the replacement to handle recursion
+        if (restart_count < MAX_RESTARTS) {
+          restart_count++;
+          buf = macro_start;  // Restart from where the macro was
+          continue;
+        } else {
+          DPRINT("processBuffer: max restarts reached, continuing\n");
+          buf += cnt;
+          restart_count = 0;
+        }
+      } else {
+        buf += cnt;
+        restart_count = 0;  // Reset restart count
+      }
       continue;
     }
     // skip string
@@ -823,6 +844,7 @@ int processBuffer(char *buf, int len, int ifclausemode)
       continue;
     }
     buf++;
+    restart_count = 0;  // Reset restart count when advancing normally
   }
   DPRINT("processBuffer done: %s\n", start);
   return 0;

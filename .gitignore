@@ -3,3 +3,4 @@ doc/*
 .vscode/*
 test.out
 err.log
+test_results/*
