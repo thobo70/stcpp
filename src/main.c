@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
       fputs(buf, outfile);
     }
   }
-  if (rtn < 0) {
+  if (rtn < 0 && getcurrentinstream() != NULL) {
     printf("Error reading file\n");
   }
   // printf("%s: %s\n", in.fname, strerror(in.error));
