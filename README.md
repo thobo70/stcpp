@@ -8,6 +8,7 @@ stcpp (super tiny cpp) is a simple and resource efficient C Preprocessor designe
 - File inclusion
 - Conditional compilation
 - Token pasting (##) operator
+- Stringification (#) operator
 
 ## Shortcommings
 

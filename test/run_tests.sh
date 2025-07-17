@@ -102,6 +102,14 @@ run_test "Token Pasting" "test_token_pasting.c" \
     "int var42 = 200" \
     "int xyz = 999"
 
+# Test 8: Stringification (#) operator
+run_test "Stringification" "test_stringification.c" \
+    "char \*test1 = \"hello\"" \
+    "char \*test2 = \"world123\"" \
+    "char \*test3 = \"a + b\"" \
+    "char \*num1 = \"42\"" \
+    "char test_str\[\] = \"test\""
+
 echo ""
 echo "=================================="
 echo "Test Summary"

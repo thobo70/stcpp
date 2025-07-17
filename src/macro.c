@@ -585,6 +585,49 @@ char *replaceBuf(char *start, char *buf, char *end, char *replace)
 
 
 /**
+ * @brief Creates a stringified version of a parameter value.
+ * 
+ * This function takes a parameter value and converts it to a string literal
+ * by adding quotes and escaping internal quotes and backslashes.
+ * 
+ * @param value The parameter value to stringify.
+ * @param result Buffer to store the stringified result.
+ * @param result_size Size of the result buffer.
+ * @return Length of the stringified result, or -1 if buffer too small.
+ */
+int stringifyParameter(const char *value, char *result, size_t result_size)
+{
+  if (value == NULL || result == NULL || result_size < 3) {
+    return -1;
+  }
+  
+  size_t pos = 0;
+  result[pos++] = '"';  // Opening quote
+  
+  for (const char *src = value; *src && pos < result_size - 2; src++) {
+    if (*src == '"' || *src == '\\') {
+      // Escape quotes and backslashes
+      if (pos < result_size - 3) {
+        result[pos++] = '\\';
+        result[pos++] = *src;
+      } else {
+        return -1;  // Not enough space
+      }
+    } else {
+      result[pos++] = *src;
+    }
+  }
+  
+  if (pos < result_size - 1) {
+    result[pos++] = '"';  // Closing quote
+    result[pos] = '\0';   // Null terminator
+    return (int)pos;
+  }
+  
+  return -1;  // Not enough space
+}
+
+/**
  * @brief Implements token pasting (##) operator.
  * 
  * This function finds ## operators in the macro expansion result and concatenates
@@ -803,7 +846,45 @@ int processMacro(char *buf, int len, int ifclausemode)
   if (parammacrolist != NULL) {
     char *token = start;
     while (token < buf) {
-      if (isIdent(*token, token - start)) {
+      if (*token == '#' && token + 1 < buf && isIdent(*(token + 1), 0)) {
+        // Check for stringification: # followed by parameter name
+        char *param_start = token + 1;
+        char *param_end = param_start;
+        while (param_end < buf && isIdent(*param_end, param_end - param_start)) {
+          param_end++;
+        }
+        
+        // Check if this is a valid parameter name
+        Macro *parammacro = parammacrolist;
+        while (parammacro != NULL) {
+          if (strlen(parammacro->name) == (size_t)(param_end - param_start) &&
+              strncmp(parammacro->name, param_start, param_end - param_start) == 0) {
+            
+            // Stringify the parameter
+            char stringified[512];
+            int str_len = stringifyParameter(parammacro->replace, stringified, sizeof(stringified));
+            
+            if (str_len > 0) {
+              char *newtoken = replaceBuf(token, param_end, end, stringified);
+              if (newtoken == NULL) {  // buffer too small
+                return -1;
+              }
+              buf += newtoken - param_end;
+              token = newtoken;
+            } else {
+              token = param_end;
+            }
+            break;
+          }
+          parammacro = parammacro->next;
+        }
+        
+        if (parammacro == NULL) {
+          // Not a parameter, move past the #
+          token++;
+        }
+      } else if (isIdent(*token, token - start)) {
+        // Regular parameter substitution
         char *tokenend = token;
         while (tokenend < buf && isIdent(*tokenend, tokenend - token)) {
           tokenend++;
@@ -822,8 +903,12 @@ int processMacro(char *buf, int len, int ifclausemode)
           }
           parammacro = parammacro->next;
         }
+        if (parammacro == NULL) {
+          token++;
+        }
+      } else {
+        token++;
       }
-      token++;
     }
 
     // free memory of parammacro's
