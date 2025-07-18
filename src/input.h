@@ -38,6 +38,8 @@ int newinstream(const char *fname, int flag);
 void releaseinstream(instream_t *in);
 int readline(instream_t *in, char *buf, int size);
 instream_t *getcurrentinstream();
+void setlinenumber(int linenum, const char *filename);
+void generate_line_directive(FILE *outfile, int linenum, const char *filename);
 
 
 #endif

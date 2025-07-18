@@ -12,6 +12,7 @@
 - ✅ **Stringification** - `#` operator for converting tokens to strings
 - ✅ **Macro undefinition** - `#undef` directive
 - ✅ **Expression evaluation** - Arithmetic expressions in `#if` conditions
+- ✅ **Line control** - `#line` directive for setting line numbers and filenames (passed to next stage)
 
 ### Advanced Features
 - **Recursive macro expansion** - Proper handling of nested macro calls
@@ -161,6 +162,7 @@ make test-recursive    # Recursive macro expansion
 make test-conditionals # Conditional compilation
 make test-token-pasting # Token pasting operator
 make test-stringification # Stringification operator
+make test-line         # Line directive
 ```
 
 ## 📖 Usage
@@ -245,6 +247,7 @@ make test-undef        # Macro undefinition
 make test-include      # File inclusion
 make test-token-pasting # Token pasting
 make test-stringification # Stringification
+make test-line         # Line directive
 ```
 
 Test results are stored in `test_results/` and can be examined for detailed output verification.
@@ -255,13 +258,13 @@ Test results are stored in `test_results/` and can be examined for detailed outp
 - ~~**Operator precedence**: Some edge cases in expression evaluation~~ ✅ **FIXED**
 - **Complex headers**: May have issues with very complex system headers
 - **Error messages**: Not yet polished for production use
-- **`#line` directive**: Not implemented for next compile stages
+- ~~**`#line` directive**: Not implemented for next compile stages~~ ✅ **IMPLEMENTED** - Now passed through to next compiler stage
 - ~~**Logical operators**: No shortcuts for `&&` and `||` in expressions~~ ✅ **FIXED**
 
 ### Planned Improvements
 - Enhanced error reporting
 - ~~Better operator precedence handling~~ ✅ **COMPLETED**
-- `#line` directive support
+- ~~`#line` directive support~~ ✅ **COMPLETED**
 - Performance optimizations
 - Extended standard compliance
 
@@ -274,6 +277,7 @@ For detailed technical information, see:
 - [`EXPRESSION_EVALUATION_IMPLEMENTATION.md`](EXPRESSION_EVALUATION_IMPLEMENTATION.md) - Expression evaluation engine
 - [`TOKEN_PASTING_IMPLEMENTATION.md`](TOKEN_PASTING_IMPLEMENTATION.md) - Token pasting specifics
 - [`STRINGIFICATION_IMPLEMENTATION.md`](STRINGIFICATION_IMPLEMENTATION.md) - Stringification details
+- [`LINE_DIRECTIVE_IMPLEMENTATION.md`](LINE_DIRECTIVE_IMPLEMENTATION.md) - Line directive implementation
 - [`RECURSIVE_MACRO_IMPLEMENTATION.md`](RECURSIVE_MACRO_IMPLEMENTATION.md) - Recursive expansion
 - [`SOURCE_CODE_ISSUES_ANALYSIS.md`](SOURCE_CODE_ISSUES_ANALYSIS.md) - Code quality analysis
 

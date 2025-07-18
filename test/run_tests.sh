@@ -110,6 +110,46 @@ run_test "Stringification" "test_stringification.c" \
     "char \*num1 = \"42\"" \
     "char test_str\[\] = \"test\""
 
+# Test 9: Line directive
+echo -n "Testing Line Directive... "
+TOTAL_TESTS=$((TOTAL_TESTS + 1))
+if $STCPP -I$TEST_DIR "$TEST_DIR/test_line_simple.c" "$RESULTS_DIR/test_line_simple.out" 2>/dev/null; then
+    # Check that #line directives are passed through to output
+    if [ -f "$RESULTS_DIR/test_line_simple.out" ] && \
+       grep -q "#line 100" "$RESULTS_DIR/test_line_simple.out" && \
+       grep -q "#line 200 \"virtual.c\"" "$RESULTS_DIR/test_line_simple.out" && \
+       grep -q "#line 1 \"final.c\"" "$RESULTS_DIR/test_line_simple.out"; then
+        echo -e "${GREEN}PASS${NC}"
+        echo "  ✓ #line directives properly processed and passed through to next stage"
+    else
+        echo -e "${RED}FAIL${NC} (#line directives not processed correctly)"
+        FAILED_TESTS=$((FAILED_TESTS + 1))
+    fi
+else
+    echo -e "${RED}FAIL${NC} (execution error)"
+    FAILED_TESTS=$((FAILED_TESTS + 1))
+fi
+
+# Test 10: Line directive pass-through to next compiler stage
+echo -n "Testing Line Directive Pass-through... "
+TOTAL_TESTS=$((TOTAL_TESTS + 1))
+if $STCPP -I$TEST_DIR "$TEST_DIR/test_line_passthrough.c" "$RESULTS_DIR/test_line_passthrough.out" 2>/dev/null; then
+    # Check that #line directives are passed through to output
+    if [ -f "$RESULTS_DIR/test_line_passthrough.out" ] && \
+       grep -q "#line 100" "$RESULTS_DIR/test_line_passthrough.out" && \
+       grep -q "#line 200 \"generated.c\"" "$RESULTS_DIR/test_line_passthrough.out" && \
+       grep -q "#line 50" "$RESULTS_DIR/test_line_passthrough.out"; then
+        echo -e "${GREEN}PASS${NC}"
+        echo "  ✓ #line directives successfully passed through to next compiler stage"
+    else
+        echo -e "${RED}FAIL${NC} (#line directives not passed through correctly)"
+        FAILED_TESTS=$((FAILED_TESTS + 1))
+    fi
+else
+    echo -e "${RED}FAIL${NC} (execution error)"
+    FAILED_TESTS=$((FAILED_TESTS + 1))
+fi
+
 echo ""
 echo "=================================="
 echo "Test Summary"

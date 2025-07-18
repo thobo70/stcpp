@@ -187,7 +187,7 @@ Since the original analysis, significant enhancements have been implemented:
 
 ## Updated Status Summary
 
-**Total Tests:** 8 categories  
+**Total Tests:** 10 categories  
 **Test Status:** ✅ All passing (100%)  
 **Critical Features:** ✅ All implemented  
 **Documentation:** ✅ Comprehensive  
@@ -201,6 +201,7 @@ The preprocessor now supports all major C standard operators with **production-g
 - ✅ Stringification (`#`) operator
 - ✅ **✨ Advanced conditional compilation** (`#if`, `#ifdef`, etc.) with **complex expression support**
 - ✅ File inclusion (`#include`)
+- ✅ **Line control** (`#line`) for setting line numbers and filenames (passed to next stage)
 - ✅ **✨ Comprehensive arithmetic, logical, and bitwise operations**
 - ✅ **✨ Proper operator precedence and associativity**
 - ✅ **✨ Error detection for malformed expressions**

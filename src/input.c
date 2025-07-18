@@ -403,3 +403,59 @@ int readline(instream_t *in, char *buf, int size) {
   }
   return 0;
 }
+
+/**
+ * @brief Sets the line number and optionally the filename for the current input stream.
+ * 
+ * This function implements the #line directive functionality by updating the
+ * line number of the current input stream and optionally changing the filename.
+ * 
+ * @param linenum The new line number to set (1-based).
+ * @param filename The new filename to set, or NULL to keep current filename.
+ */
+void setlinenumber(int linenum, const char *filename) {
+    instream_t *current = getcurrentinstream();
+    if (current == NULL) {
+        return;  // No active input stream
+    }
+    
+    // Set the new line number (adjust by -1 because it will be incremented)
+    current->line = linenum - 1;
+    
+    // Update filename if provided
+    if (filename != NULL && filename[0] != '\0') {
+        // Free existing filename if it was dynamically allocated
+        if (current->fname != NULL) {
+            free(current->fname);
+        }
+        
+        // Allocate and copy the new filename
+        current->fname = malloc(strlen(filename) + 1);
+        if (current->fname != NULL) {
+            strcpy(current->fname, filename);
+        }
+    }
+}
+
+/**
+ * @brief Generates a #line directive for the next compiler stage.
+ * 
+ * This function outputs a #line directive to the output file, which will be
+ * processed by the next compiler stage. This is used to maintain correct
+ * line number tracking through the preprocessing chain.
+ * 
+ * @param outfile The output file to write the directive to.
+ * @param linenum The line number to set (1-based).
+ * @param filename The filename to set, or NULL to omit filename.
+ */
+void generate_line_directive(FILE *outfile, int linenum, const char *filename) {
+    if (outfile == NULL) {
+        return;
+    }
+    
+    if (filename != NULL && filename[0] != '\0') {
+        fprintf(outfile, "#line %d \"%s\"\n", linenum, filename);
+    } else {
+        fprintf(outfile, "#line %d\n", linenum);
+    }
+}

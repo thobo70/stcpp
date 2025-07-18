@@ -271,6 +271,92 @@ int do_include(char *buf, char *end)
   return 0;
 }
 
+/**
+ * @brief Parse and process a #line directive.
+ * 
+ * This function parses a #line directive and sets the line number and optionally
+ * the filename for the current input stream. The #line directive can have two forms:
+ * - #line number
+ * - #line number "filename"
+ * 
+ * @param buf Pointer to the buffer containing the line directive arguments.
+ * @param end Pointer to the end of the buffer.
+ * @param outfile Output file for generating line directives for next stage.
+ * @return 0 on success, -1 on error.
+ */
+int do_line(char *buf, char *end, FILE *outfile) {
+    char *start = buf;
+    char *linenum_end;
+    int linenum;
+    char *filename = NULL;
+    
+    // Skip leading whitespace
+    while (start < end && isspace(*start)) {
+        start++;
+    }
+    
+    if (start >= end) {
+        DPRINT("Error: #line directive missing line number\n");
+        return -1;
+    }
+    
+    // Parse line number
+    linenum = (int)strtol(start, &linenum_end, 10);
+    if (linenum_end == start || linenum < 1) {
+        DPRINT("Error: #line directive has invalid line number\n");
+        return -1;
+    }
+    
+    start = linenum_end;
+    
+    // Skip whitespace after line number
+    while (start < end && isspace(*start)) {
+        start++;
+    }
+    
+    // Check if there's a filename
+    if (start < end && *start == '"') {
+        char *filename_start = start + 1;  // Skip opening quote
+        char *filename_end = strchr(filename_start, '"');
+        
+        if (filename_end == NULL || filename_end >= end) {
+            DPRINT("Error: #line directive has unterminated filename string\n");
+            return -1;
+        }
+        
+        // Null-terminate the filename
+        *filename_end = '\0';
+        filename = filename_start;
+        
+        start = filename_end + 1;
+    }
+    
+    // Skip remaining whitespace
+    while (start < end && isspace(*start)) {
+        start++;
+    }
+    
+    // Check for unexpected content
+    if (start < end && *start != '\0' && *start != '\n') {
+        DPRINT("Error: #line directive has unexpected content after filename\n");
+        return -1;
+    }
+    
+    // Apply the line directive
+    setlinenumber(linenum, filename);
+    
+    // Generate #line directive for next compiler stage
+    generate_line_directive(outfile, linenum, filename);
+    
+    DPRINT("Line directive: setting line to %d", linenum);
+    if (filename) {
+        DPRINT(", filename to \"%s\"", filename);
+    }
+    DPRINT("\n");
+    
+    return 0;
+}
+
 
 
 /**
@@ -280,9 +366,10 @@ int do_include(char *buf, char *end)
  * 
  * @param buf 
  * @param size 
+ * @param outfile Output file for generating line directives
  * @return int 
  */
-int processcmdline(char *buf, int size)
+int processcmdline(char *buf, int size, FILE *outfile)
 {
   assert(buf != NULL);
   assert(size > 0);
@@ -450,6 +537,10 @@ int processcmdline(char *buf, int size)
       break;
     case LINE:
       DPRINT("Line: %s\n", buf + 1);
+      if (do_line(buf + 1, end, outfile) != 0) {
+        DPRINT("Error processing #line directive\n");
+        return -1;
+      }
       break;
     case UNKNOWN:
       DPRINT("Unknown: %s\n", buf + 1);

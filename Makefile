@@ -6,7 +6,7 @@ TARGET = $(BINDIR)/stcpp
 CFLAGS = -g -Og -Wall -Werror -Wextra -pedantic -Isrc
 # CFLAGS = -DNDEBUG -Oz -Wall -Werror -Wextra -pedantic -Isrc
 
-.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include test-token-pasting test-stringification doc lint
+.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include test-token-pasting test-stringification test-line doc lint
 
 all: target
 
@@ -81,6 +81,25 @@ test-stringification: target test_results
 	./$(TARGET) -Itest test/test_stringification.c test_results/test_stringification.out
 	@echo "Output:"
 	@head -20 test_results/test_stringification.out
+
+test-line: target test_results
+	@echo "Testing #line directive..."
+	./$(TARGET) -Itest test/test_line_simple.c test_results/test_line_simple.out
+	@echo "Line directive test completed successfully."
+	@echo "Output file contains $(shell wc -l < test_results/test_line_simple.out) lines"
+	@echo "#line directives are passed through to next compiler stage."
+	@echo ""
+	@echo "Testing #line pass-through to next compiler stage..."
+	./$(TARGET) -Itest test/test_line_passthrough.c test_results/test_line_passthrough.out
+	@echo "Pass-through test completed."
+	@if grep -q "#line 100" test_results/test_line_passthrough.out && \
+	   grep -q "#line 200 \"generated.c\"" test_results/test_line_passthrough.out && \
+	   grep -q "#line 50" test_results/test_line_passthrough.out; then \
+		echo "✓ #line directives successfully passed through to next compiler stage"; \
+	else \
+		echo "✗ #line directives not found in output"; \
+		exit 1; \
+	fi
 
 # Create test results directory
 test_results:

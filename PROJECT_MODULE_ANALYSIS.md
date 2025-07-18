@@ -82,7 +82,7 @@ The stcpp project is a comprehensive C preprocessor implementation with sophisti
 - ✅ `#else` / `#elif` / `#endif` - Conditional blocks
 - ✅ `#error` - Error messages
 - ✅ `#pragma` - Implementation-specific directives
-- ✅ `#line` - Line number control
+- ✅ `#line` - Line number control (passed to next stage)
 
 #### Integration Points:
 - **→ macro:** Calls `addMacro()`, `deleteMacro()`
@@ -350,7 +350,7 @@ Text with MACRO_NAME(args)
 ## Test Infrastructure
 
 ### Comprehensive Test Suite
-The project includes a robust testing framework with 8 test categories:
+The project includes a robust testing framework with 9 test categories:
 
 ```bash
 # Individual Tests
@@ -362,6 +362,7 @@ make test-undef         # #undef functionality
 make test-include       # File inclusion
 make test-token-pasting # ## operator
 make test-stringification # # operator
+make test-line          # #line directive
 
 # Comprehensive Suite
 make test-all           # All tests with pattern validation
@@ -372,8 +373,8 @@ make test-all           # All tests with pattern validation
 ==================================
 Test Summary  
 ==================================
-Total Tests: 8
-Passed: 8
+Total Tests: 10
+Passed: 10
 Failed: 0
 All tests passed!
 ```

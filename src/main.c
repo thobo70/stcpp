@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
       break;
     }
     if (iscmdline(buf)) {
-      if (processcmdline(buf, sizeof(buf)) != 0) {
+      if (processcmdline(buf, sizeof(buf), outfile) != 0) {
         printf("Error processing command line\n");
         DPRINT("%s(%d, %d): %s\n", in->fname, in->line, in->col, strerror(in->error));
         break;

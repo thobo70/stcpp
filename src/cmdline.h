@@ -21,7 +21,7 @@ typedef enum cmdcondstate {
 extern int condstate;
 
 int iscmdline(char *line);
-int processcmdline(char *buf, int size);
+int processcmdline(char *buf, int size, FILE *outfile);
 
 
 #endif
