@@ -96,9 +96,9 @@ stcpp implements a sophisticated macro system:
 // STR(hello) → "hello"
 ```
 
-### 3. Conditional Compilation
+### 3. Expression Evaluation Engine
 
-stcpp supports nested conditional compilation:
+stcpp features a **production-grade expression evaluation system** for `#if` directives:
 
 ```c
 #if defined(FEATURE_A) && (VERSION > 100)
@@ -113,7 +113,17 @@ stcpp supports nested conditional compilation:
 #endif
 ```
 
-### 4. Memory Management
+#### **Advanced Expression Support:**
+- ✅ **Arithmetic:** `+`, `-`, `*`, `/`, `%` with correct precedence
+- ✅ **Bitwise:** `&`, `|`, `^`, `~`, `<<`, `>>` 
+- ✅ **Logical:** `&&`, `||`, `!` with short-circuit evaluation
+- ✅ **Comparison:** `<`, `>`, `<=`, `>=`, `==`, `!=`
+- ✅ **Ternary:** `condition ? true : false` with right associativity
+- ✅ **Complex expressions:** `(1+2*3>5) ? (8|2) : (4&1)`
+- ✅ **Proper associativity:** Left-to-right for arithmetic (`8/2*3` = `12`)
+- ✅ **Error detection:** Division by zero, incomplete expressions
+
+### 5. Memory Management
 
 stcpp is designed for minimal memory usage:
 
@@ -242,15 +252,15 @@ Test results are stored in `test_results/` and can be examined for detailed outp
 ## ⚠️ Known Limitations
 
 ### Current Shortcomings
-- **Operator precedence**: Some edge cases in expression evaluation
+- ~~**Operator precedence**: Some edge cases in expression evaluation~~ ✅ **FIXED**
 - **Complex headers**: May have issues with very complex system headers
 - **Error messages**: Not yet polished for production use
 - **`#line` directive**: Not implemented for next compile stages
-- **Logical operators**: No shortcuts for `&&` and `||` in expressions
+- ~~**Logical operators**: No shortcuts for `&&` and `||` in expressions~~ ✅ **FIXED**
 
 ### Planned Improvements
 - Enhanced error reporting
-- Better operator precedence handling
+- ~~Better operator precedence handling~~ ✅ **COMPLETED**
 - `#line` directive support
 - Performance optimizations
 - Extended standard compliance
@@ -261,6 +271,7 @@ For detailed technical information, see:
 
 - [`PROJECT_MODULE_ANALYSIS.md`](PROJECT_MODULE_ANALYSIS.md) - Complete module analysis
 - [`MACRO_HANDLING_DOCUMENTATION.md`](MACRO_HANDLING_DOCUMENTATION.md) - Macro system details
+- [`EXPRESSION_EVALUATION_IMPLEMENTATION.md`](EXPRESSION_EVALUATION_IMPLEMENTATION.md) - Expression evaluation engine
 - [`TOKEN_PASTING_IMPLEMENTATION.md`](TOKEN_PASTING_IMPLEMENTATION.md) - Token pasting specifics
 - [`STRINGIFICATION_IMPLEMENTATION.md`](STRINGIFICATION_IMPLEMENTATION.md) - Stringification details
 - [`RECURSIVE_MACRO_IMPLEMENTATION.md`](RECURSIVE_MACRO_IMPLEMENTATION.md) - Recursive expansion

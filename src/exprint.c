@@ -84,7 +84,18 @@ static result_t set_error(int error_code) {
  */
 result_t evaluate_expression(const char *expr) {
     expr_error = 0;
-    return parse_ternary(&expr);
+    result_t result = parse_ternary(&expr);
+    
+    // Skip any trailing whitespace
+    while (isspace(*expr)) expr++;
+    
+    // Check if there are unexpected characters at the end
+    if (*expr != '\0' && expr_error == 0) {
+        expr_error = EE_UNEXPECTEDCHAR;
+        return 0;
+    }
+    
+    return result;
 }
 
 /**
@@ -130,7 +141,7 @@ result_t parse_logical_or(const char **expr) {
     result_t result = parse_logical_and(expr);
     while (**expr == '|' && *(*expr + 1) == '|') {
         (*expr) += 2;
-        result_t rhs = parse_ternary(expr);
+        result_t rhs = parse_logical_and(expr);
         result = result || rhs;
     }
     FEXIT(result, *expr);
@@ -152,7 +163,7 @@ result_t parse_logical_and(const char **expr) {
     result_t result = parse_bitwise_or(expr);
     while (**expr == '&' && *(*expr + 1) == '&') {
         (*expr) += 2;
-        result_t rhs = parse_ternary(expr);
+        result_t rhs = parse_bitwise_or(expr);
         result = result && rhs;
     }
     FEXIT(result, *expr);
@@ -174,7 +185,7 @@ result_t parse_bitwise_or(const char **expr) {
     result_t result = parse_bitwise_xor(expr);
     while (**expr == '|' && *(*expr + 1) != '|') {
         (*expr)++;
-        result_t rhs = parse_ternary(expr);
+        result_t rhs = parse_bitwise_xor(expr);
         result |= rhs;
     }
     FEXIT(result, *expr);
@@ -196,7 +207,7 @@ result_t parse_bitwise_xor(const char **expr) {
     result_t result = parse_bitwise_and(expr);
     while (**expr == '^') {
         (*expr)++;
-        result_t rhs = parse_ternary(expr);
+        result_t rhs = parse_bitwise_and(expr);
         result ^= rhs;
     }
     FEXIT(result, *expr);
@@ -218,7 +229,7 @@ result_t parse_bitwise_and(const char **expr) {
     result_t result = parse_equality(expr);
     while (**expr == '&' && *(*expr + 1) != '&') {
         (*expr)++;
-        result_t rhs = parse_ternary(expr);
+        result_t rhs = parse_equality(expr);
         result &= rhs;
     }
     FEXIT(result, *expr);
@@ -243,7 +254,7 @@ result_t parse_equality(const char **expr) {
         (*expr)++;
         if (**expr == '=') {
             (*expr)++;
-            result_t rhs = parse_ternary(expr);
+            result_t rhs = parse_relational(expr);
             if (op == '=') result = result == rhs;
             else if (op == '!') result = result != rhs;
         }
@@ -270,11 +281,11 @@ result_t parse_relational(const char **expr) {
         (*expr)++;
         if (**expr == '=') {
             (*expr)++;
-            result_t rhs = parse_ternary(expr);
+            result_t rhs = parse_shift(expr);
             if (op == '<') result = result <= rhs;
             else if (op == '>') result = result >= rhs;
         } else {
-            result_t rhs = parse_ternary(expr);
+            result_t rhs = parse_shift(expr);
             if (op == '<') result = result < rhs;
             else if (op == '>') result = result > rhs;
         }
@@ -301,7 +312,7 @@ result_t parse_shift(const char **expr) {
         (*expr)++;
         if (**expr == op) {
             (*expr)++;
-            result_t rhs = parse_ternary(expr);
+            result_t rhs = parse_additive(expr);
             if (op == '<') result <<= rhs;
             else if (op == '>') result >>= rhs;
         } else {
@@ -329,9 +340,24 @@ result_t parse_additive(const char **expr) {
     while (**expr == '+' || **expr == '-') {
         char op = **expr;
         (*expr)++;
-        result_t rhs = parse_ternary(expr);
-        if (op == '+') result += rhs;
-        else if (op == '-') result -= rhs;
+        
+        // Skip whitespace after operator
+        while (isspace(**expr)) (*expr)++;
+        
+        // Check for incomplete expression (operator at end)
+        if (**expr == '\0') {
+            result = set_error(EE_UNEXPECTEDCHAR);
+            break;
+        }
+        
+        result_t rhs = parse_multiplicative(expr);
+        if (expr_error != 0) break;
+        
+        if (op == '+') {
+            result += rhs;
+        } else if (op == '-') {
+            result -= rhs;
+        }
     }
     FEXIT(result, *expr);
     return result;
@@ -353,10 +379,24 @@ result_t parse_multiplicative(const char **expr) {
     while (**expr == '*' || **expr == '/' || **expr == '%') {
         char op = **expr;
         (*expr)++;
-        result_t rhs = parse_ternary(expr);
-        if (op == '*') result *= rhs;
-        else if (op == '%') result %= rhs;
-        else if (op == '/') {
+        
+        // Skip whitespace after operator
+        while (isspace(**expr)) (*expr)++;
+        
+        // Check for incomplete expression (operator at end)
+        if (**expr == '\0') {
+            result = set_error(EE_UNEXPECTEDCHAR);
+            break;
+        }
+        
+        result_t rhs = parse_unary(expr);
+        if (expr_error != 0) break;
+        
+        if (op == '*') {
+            result *= rhs;
+        } else if (op == '%') {
+            result %= rhs;
+        } else if (op == '/') {
             if (rhs == 0) {
                 result = set_error(EE_DIVBYZERO);
                 break;
@@ -412,6 +452,7 @@ result_t parse_primary(const char **expr) {
     if (**expr == '(') {
         (*expr)++;
         result = parse_ternary(expr);
+        while (isspace(**expr)) (*expr)++;
         if (**expr == ')') {
             (*expr)++;
         } else {
@@ -421,6 +462,8 @@ result_t parse_primary(const char **expr) {
         result = parse_number(expr);
     } else if (**expr == '\'') {
         result = parse_char_constant(expr);
+    } else if (**expr == '\0') {
+        result = set_error(EE_UNEXPECTEDCHAR);
     } else {
         result = set_error(EE_UNEXPECTEDCHAR);
     }
