@@ -13,6 +13,7 @@
 - ✅ **Macro undefinition** - `#undef` directive
 - ✅ **Expression evaluation** - Arithmetic expressions in `#if` conditions
 - ✅ **Line control** - `#line` directive for setting line numbers and filenames (passed to next stage)
+- ✅ **Built-in macros** - `__LINE__` and `__FILE__` standard C preprocessor macros
 
 ### Advanced Features
 - **Recursive macro expansion** - Proper handling of nested macro calls
@@ -278,6 +279,7 @@ For detailed technical information, see:
 - [`TOKEN_PASTING_IMPLEMENTATION.md`](TOKEN_PASTING_IMPLEMENTATION.md) - Token pasting specifics
 - [`STRINGIFICATION_IMPLEMENTATION.md`](STRINGIFICATION_IMPLEMENTATION.md) - Stringification details
 - [`LINE_DIRECTIVE_IMPLEMENTATION.md`](LINE_DIRECTIVE_IMPLEMENTATION.md) - Line directive implementation
+- [`BUILTIN_MACRO_IMPLEMENTATION.md`](BUILTIN_MACRO_IMPLEMENTATION.md) - Built-in macro support
 - [`RECURSIVE_MACRO_IMPLEMENTATION.md`](RECURSIVE_MACRO_IMPLEMENTATION.md) - Recursive expansion
 - [`SOURCE_CODE_ISSUES_ANALYSIS.md`](SOURCE_CODE_ISSUES_ANALYSIS.md) - Code quality analysis
 

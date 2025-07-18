@@ -67,6 +67,7 @@
 
 #include "debug.h"
 #include "macro.h"
+#include "input.h"
 
 /**
  * @struct MacroParam
@@ -762,7 +763,15 @@ int processMacro(char *buf, int len, int ifclausemode)
     return 1;
   }
   Macro *macro = findMacro(start, buf);
-  if (macro == NULL) {  // no macro found
+  if (macro == NULL) {  // no macro found, check for built-in macros
+    char *builtin_value = getBuiltinMacro(start, buf);
+    if (builtin_value != NULL) {
+      // Found a built-in macro, replace it
+      buf = replaceBuf(start, buf, end, builtin_value);
+      macro_expanded = 1;  // Mark that a macro was expanded
+      return buf - start;
+    }
+    
     if (*buf == '(') {  // skip functional macro
       buf = skipExpression(buf, end);
     }
@@ -991,4 +1000,48 @@ int processBuffer(char *buf, int len, int ifclausemode)
   }
   DPRINT("processBuffer done: %s\n", start);
   return 0;
+}
+
+
+/**
+ * @brief Get replacement text for built-in macros.
+ * 
+ * This function handles built-in preprocessor macros like __LINE__ and __FILE__.
+ * It returns dynamically generated replacement text for these macros.
+ * 
+ * @param start The start of the macro name.
+ * @param end The end of the macro name.
+ * @return A dynamically allocated string containing the replacement text, or NULL if not a built-in macro.
+ */
+char *getBuiltinMacro(char *start, char *end) {
+    static char line_buffer[32];
+    static char file_buffer[512];
+    int name_len = end - start;
+    
+    // Check for __LINE__ macro
+    if (name_len == 8 && strncmp(start, "__LINE__", 8) == 0) {
+        // Get current input stream to get line number
+        instream_t *current = getcurrentinstream();
+        if (current != NULL) {
+            snprintf(line_buffer, sizeof(line_buffer), "%d", current->line);
+            return line_buffer;
+        } else {
+            return "1";  // Default line number if no stream
+        }
+    }
+    
+    // Check for __FILE__ macro
+    if (name_len == 8 && strncmp(start, "__FILE__", 8) == 0) {
+        // Get current input stream to get filename
+        instream_t *current = getcurrentinstream();
+        if (current != NULL && current->fname != NULL) {
+            snprintf(file_buffer, sizeof(file_buffer), "\"%s\"", current->fname);
+            return file_buffer;
+        } else {
+            return "\"<unknown>\"";  // Default filename if no stream
+        }
+    }
+    
+    // Not a built-in macro
+    return NULL;
 }

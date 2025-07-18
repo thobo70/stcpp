@@ -150,6 +150,16 @@ else
     FAILED_TESTS=$((FAILED_TESTS + 1))
 fi
 
+# Test 11: Built-in macros (__LINE__ and __FILE__)
+run_test "Built-in Macros" test_builtin_macros_proper.c \
+    "int line_number_direct = 7;" \
+    "const char \*filename_direct = \"test/test_builtin_macros_proper.c\";" \
+    "int line_in_macro = 14;" \
+    "const char \*file_in_macro = \"test/test_builtin_macros_proper.c\";" \
+    "int line_a = 21;" \
+    "int line_b = 22;" \
+    "int line_c = 23;"
+
 echo ""
 echo "=================================="
 echo "Test Summary"
