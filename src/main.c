@@ -29,12 +29,13 @@ void print_help(const char *program_name) {
   printf("  -Ipath          Add directory to include search path\n");
   printf("  -h              Show this help message and exit\n\n");
   printf("Arguments:\n");
-  printf("  infile          Input C source file to preprocess\n");
-  printf("  outfile         Output file for preprocessed code\n\n");
+  printf("  infile          Input C source file to preprocess (use '-' for stdin)\n");
+  printf("  outfile         Output file for preprocessed code (use '-' for stdout)\n\n");
   printf("Examples:\n");
   printf("  %s input.c output.c\n", program_name);
   printf("  %s -DDEBUG=1 -Iinclude input.c output.c\n", program_name);
   printf("  %s -DVERSION=2 -UOLDFEATURE input.c -\n", program_name);
+  printf("  echo '#define TEST 42' | %s - -\n", program_name);
 }
 
 
@@ -96,8 +97,16 @@ int main(int argc, char *argv[])
   }
 
 
-  if (newinstream(strdup(infname), 1) != 0) {
-    return 1;
+  if (strcmp(infname, "-") == 0) {
+    // Use stdin
+    if (newinstream(strdup("<stdin>"), 0) != 0) {
+      return 1;
+    }
+  } else {
+    // Use regular file
+    if (newinstream(strdup(infname), 1) != 0) {
+      return 1;
+    }
   }
 
   char buf[4096];

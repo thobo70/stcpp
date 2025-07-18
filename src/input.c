@@ -148,7 +148,7 @@ void releaseinstream(instream_t *in) {
     return;
   }
   DPRINT("Releasing current instream '%s'\n", in->fname);
-  if (in->file != NULL) {
+  if (in->file != NULL && in->file != stdin) {
     fclose(in->file);
   }
   if (in->fname != NULL) {
@@ -175,23 +175,38 @@ void releaseinstream(instream_t *in) {
  * @return 0 on success, -1 on failure.
  */
 int newinstream(const char *fname, int flag) {
-  char *pathname = checkpath(fname, flag);
-  if (pathname == NULL) {
-    fprintf(stderr, "File not found: %s\n", fname);
-    return -1;
+  char *pathname;
+  FILE *file;
+  
+  // Handle stdin special case
+  if (strcmp(fname, "<stdin>") == 0) {
+    pathname = strdup("<stdin>");
+    file = stdin;
+  } else {
+    pathname = checkpath(fname, flag);
+    if (pathname == NULL) {
+      fprintf(stderr, "File not found: %s\n", fname);
+      return -1;
+    }
+    DPRINT("Opening file %s\n", pathname);
+    file = fopen(pathname, "r");
+    if (file == NULL) {
+      perror(pathname);
+      free(pathname);
+      return -1;
+    }
   }
-  DPRINT("Opening file %s\n", pathname);
+  
   instream_t *in = malloc(sizeof(instream_t));
   if (in == NULL) {
+    if (file != stdin) {
+      fclose(file);
+    }
+    free(pathname);
     return -1;
   }
   in->fname = pathname;
-  in->file = fopen(pathname, "r");
-  if (in->file == NULL) {
-    perror(pathname);
-    releaseinstream(in);
-    return -1;
-  }
+  in->file = file;
   in->line = 1;
   in->col = 0;
   in->pos = 0;
