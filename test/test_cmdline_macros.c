@@ -1,6 +1,9 @@
-//
-// Test for -D command line option functionality
-//
+/**
+ * @file test_cmdline_macros.c
+ * @brief Test for -D command line option functionality
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @copyright Copyright (c) 2024
+ */
 
 // Test 1: Simple macro definition without value (should default to 1)
 #ifdef SIMPLE

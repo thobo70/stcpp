@@ -1,8 +1,8 @@
 # Expression Evaluation Implementation
 
-**Author:** Thomas Boos (tboos70@gmail.com)  
-**Date:** July 18, 2025  
-**Module:** `exprint.c` / `exprint.h`  
+**Author:** Thomas Boos (tboos70@gmail.com)
+**Date:** July 18, 2025
+**Module:** `exprint.c` / `exprint.h`
 **Status:** ✅ Production-Ready
 
 ## Overview
@@ -143,7 +143,7 @@ result_t parse_additive(const char **expr) {
 
 **After:**
 ```c
-// Expression: 1-2+3  
+// Expression: 1-2+3
 // Evaluated as: (1-2)+3 = 2   (CORRECT!)
 ```
 
@@ -171,16 +171,16 @@ result_t parse_additive(const char **expr) {
 result_t evaluate_expression(const char *expr) {
     expr_error = 0;
     result_t result = parse_ternary(&expr);
-    
+
     // Skip trailing whitespace
     while (isspace(*expr)) expr++;
-    
+
     // Check for unexpected characters
     if (*expr != '\0' && expr_error == 0) {
         expr_error = EE_UNEXPECTEDCHAR;
         return 0;
     }
-    
+
     return result;
 }
 
@@ -190,10 +190,10 @@ result_t parse_additive(const char **expr) {
     while (**expr == '+' || **expr == '-') {
         char op = **expr;
         (*expr)++;
-        
+
         // Skip whitespace after operator
         while (isspace(**expr)) (*expr)++;
-        
+
         // Check for incomplete expression
         if (**expr == '\0') {
             result = set_error(EE_UNEXPECTEDCHAR);
@@ -258,14 +258,14 @@ enum {
 int ifEval(char* buf, char* end, result_t* result) {
     // Macro expansion first
     if (processBuffer(buf, end - buf, 1) != 0) return -1;
-    
+
     // Expression evaluation
     *result = evaluate_expression(buf);
     if (expr_error != EE_OK) {
         DPRINT("Error evaluating if expression %d\n", expr_error);
         return -1;
     }
-    
+
     return 0;
 }
 ```

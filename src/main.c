@@ -1,12 +1,12 @@
 /**
  * @file main.c
  * @author Thomas Boos (tboos70@gmail.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-08-07
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 #define NDEBUG
 #include <stdio.h>

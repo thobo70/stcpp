@@ -1,12 +1,15 @@
-//
-// Simple test for -D command line option functionality
-//
+/**
+ * @file test_simple_ifdef.c
+ * @brief Simple test for -D command line option functionality
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @copyright Copyright (c) 2024
+ */
 
 #ifdef DEBUG
 int debug_mode = DEBUG;
 #endif
 
-#ifdef VERBOSE  
+#ifdef VERBOSE
 int verbose_mode = VERBOSE;
 #endif
 

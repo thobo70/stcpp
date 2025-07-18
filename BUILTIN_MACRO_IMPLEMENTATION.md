@@ -71,7 +71,7 @@ This implementation follows C standard requirements for:
 
 The architecture supports adding additional built-in macros such as:
 - `__DATE__`: Current date as string literal
-- `__TIME__`: Current time as string literal  
+- `__TIME__`: Current time as string literal
 - `__STDC__`: Standard compliance indicator
 - `__VERSION__`: Compiler version information
 
@@ -94,7 +94,7 @@ The architecture supports adding additional built-in macros such as:
 // Line number expansion
 int current_line = __LINE__;  // Expands to line number
 
-// File name expansion  
+// File name expansion
 const char *current_file = __FILE__;  // Expands to "filename.c"
 
 // In macro definitions

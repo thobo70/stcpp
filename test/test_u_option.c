@@ -1,6 +1,9 @@
-//
-// Test for -U command line option functionality
-//
+/**
+ * @file test_u_option.c
+ * @brief Test for -U command line option functionality
+ * @author Thomas Boos (tboos70@gmail.com)
+ * @copyright Copyright (c) 2024
+ */
 
 // Test code that uses macros that might be defined or undefined
 #ifdef DEBUG

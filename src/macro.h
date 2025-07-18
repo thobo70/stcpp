@@ -1,12 +1,12 @@
 /**
  * @file macro.h
  * @author Thomas Boos (tboos70@gmail.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2024-08-09
- * 
+ *
  * @copyright Copyright (c) 2024
- * 
+ *
  */
 
 #ifndef SRC_MACRO_H_

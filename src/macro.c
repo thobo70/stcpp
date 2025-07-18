@@ -72,7 +72,7 @@
 /**
  * @struct MacroParam
  * @brief A structure to represent a parameter of a macro.
- * 
+ *
  * This structure is used to store the name of a parameter of a macro.
  * It also contains a pointer to the next parameter in the list, allowing
  * the parameters to be stored in a linked list.
@@ -87,7 +87,7 @@ typedef struct macroparam {
 /**
  * @struct Macro
  * @brief A structure to represent a macro.
- * 
+ *
  * This structure is used to store the details of a macro, including its name,
  * parameters, and replacement text. It also contains a pointer to the next macro
  * in the list, allowing the macros to be stored in a linked list.
@@ -108,11 +108,11 @@ static int macro_expanded = 0;  // Flag to track if macro expansion occurred
 
 /**
  * @brief Skips over whitespace characters in a buffer.
- * 
+ *
  * This function takes a pointer to a buffer and a pointer to the end of the buffer.
  * It advances the buffer pointer past any leading whitespace characters and returns
  * the updated pointer.
- * 
+ *
  * @param buf Pointer to the start of the buffer.
  * @param end Pointer to the end of the buffer.
  * @return Pointer to the first non-whitespace character in the buffer, or the end of the buffer if no such character exists.
@@ -131,12 +131,12 @@ char *skipSpaces(char *buf, char *end)
 
 /**
  * @brief Skips over a string in a buffer.
- * 
+ *
  * This function takes a pointer to a buffer and a pointer to the end of the buffer.
  * It advances the buffer pointer past a string. A string is considered to be any sequence
  * of characters enclosed in double quotes (""). If a double quote is preceded by a backslash (\"),
  * it is considered to be part of the string rather than the end of the string.
- * 
+ *
  * @param buf Pointer to the start of the buffer.
  * @param end Pointer to the end of the buffer.
  * @return Pointer to the character immediately after the end of the string, or the end of the buffer if no such character exists.
@@ -179,13 +179,13 @@ char *skipNumber(char *buf, char *end)
 
 /**
  * @brief Skips over an expression in a buffer.
- * 
+ *
  * This function takes a pointer to a buffer and a pointer to the end of the buffer.
  * It advances the buffer pointer past an expression. An expression is considered to be
  * any sequence of characters enclosed in parentheses (()). Nested expressions are handled
  * correctly. If an expression contains a string (a sequence of characters enclosed in double
  * quotes ("")), the string is skipped over using the skipString function.
- * 
+ *
  * @param buf Pointer to the start of the buffer.
  * @param end Pointer to the end of the buffer.
  * @return Pointer to the character immediately after the end of the expression, or the end of the buffer if no such character exists.
@@ -303,7 +303,7 @@ int isIdent(char c, int idx)
  * @return 0 if the macro was successfully added, -1 if there was an error.
  *
  * @startuml
- * 
+ *
  * start
  * :Find beginning of macro name;
  * :Search for end of macro name;
@@ -439,12 +439,12 @@ int addMacro(char *buf)
 
 /**
  * @brief Parse and add a macro from command line -D option.
- * 
+ *
  * This function parses command line macro definitions in the format:
  * - MACRO (defines MACRO as 1)
  * - MACRO=value (defines MACRO as value)
  * - MACRO= (defines MACRO as empty string)
- * 
+ *
  * @param definition The macro definition string from -D option
  * @return 0 on success, -1 on error
  */
@@ -452,11 +452,11 @@ int addCommandLineMacro(const char *definition) {
     if (definition == NULL || *definition == '\0') {
         return -1;
     }
-    
+
     // Find the '=' separator if it exists
     const char *equals = strchr(definition, '=');
     char *macro_string;
-    
+
     if (equals == NULL) {
         // No '=' found, define as MACRO 1
         size_t len = strlen(definition);
@@ -470,28 +470,28 @@ int addCommandLineMacro(const char *definition) {
         // '=' found, parse MACRO=value
         size_t name_len = equals - definition;
         size_t value_len = strlen(equals + 1);
-        
+
         if (name_len == 0) {
             return -1;  // Empty macro name
         }
-        
+
         macro_string = malloc(name_len + 1 + value_len + 1);  // space for "name value\0"
         if (macro_string == NULL) {
             return -1;
         }
-        
+
         // Copy macro name
         strncpy(macro_string, definition, name_len);
         macro_string[name_len] = ' ';  // Separator
-        
+
         // Copy macro value (can be empty)
         strcpy(macro_string + name_len + 1, equals + 1);
     }
-    
+
     // Use existing addMacro function
     int result = addMacro(macro_string);
     free(macro_string);
-    
+
     return result;
 }
 
@@ -499,15 +499,15 @@ int addCommandLineMacro(const char *definition) {
 
 /**
  * @brief Deletes a macro from the macro list.
- * 
+ *
  * This function takes the name of a macro and deletes it from the macro list.
  * It frees all memory associated with the macro, including the memory for the
  * macro's name, replacement text, and parameters. If the macro is not found in
  * the list, it returns -1.
- * 
+ *
  * @param name Name of the macro to delete.
  * @return 0 if the macro was successfully deleted, -1 if the macro was not found.
- * 
+ *
  * @startuml
  * start
  * :Initialize temp to macroList;
@@ -593,11 +593,11 @@ Macro *findMacro(char *start, char *end)
 
 /**
  * @brief Checks if a macro is defined.
- * 
+ *
  * This function takes a pointer to the start and end of a macro name in a buffer.
  * It uses the findMacro function to search for the macro in the macro list.
  * If the macro is found, it returns 1; otherwise, it returns 0.
- * 
+ *
  * @param start Pointer to the start of the macro name in the buffer.
  * @param end Pointer to the end of the macro name in the buffer.
  * @return 1 if the macro is defined, 0 otherwise.
@@ -611,13 +611,13 @@ int isdefinedMacro(char *start, char *end)
 
 /**
  * @brief Replaces a portion of a buffer with a given string.
- * 
+ *
  * This function takes pointers to the start and end of a buffer, a pointer to the portion
  * of the buffer to be replaced, and a replacement string. It replaces the portion of the
  * buffer starting at `buf` and ending at the end of the string in the buffer with the
  * replacement string. If the buffer is too small to hold the replacement string and the
  * remaining contents of the buffer, it returns NULL.
- * 
+ *
  * @param start Pointer to the start of the buffer.
  * @param buf Pointer to the portion of the buffer to be replaced.
  * @param end Pointer to the end of the buffer.
@@ -646,10 +646,10 @@ char *replaceBuf(char *start, char *buf, char *end, char *replace)
 
 /**
  * @brief Creates a stringified version of a parameter value.
- * 
+ *
  * This function takes a parameter value and converts it to a string literal
  * by adding quotes and escaping internal quotes and backslashes.
- * 
+ *
  * @param value The parameter value to stringify.
  * @param result Buffer to store the stringified result.
  * @param result_size Size of the result buffer.
@@ -660,10 +660,10 @@ int stringifyParameter(const char *value, char *result, size_t result_size)
   if (value == NULL || result == NULL || result_size < 3) {
     return -1;
   }
-  
+
   size_t pos = 0;
   result[pos++] = '"';  // Opening quote
-  
+
   for (const char *src = value; *src && pos < result_size - 2; src++) {
     if (*src == '"' || *src == '\\') {
       // Escape quotes and backslashes
@@ -677,23 +677,23 @@ int stringifyParameter(const char *value, char *result, size_t result_size)
       result[pos++] = *src;
     }
   }
-  
+
   if (pos < result_size - 1) {
     result[pos++] = '"';  // Closing quote
     result[pos] = '\0';   // Null terminator
     return (int)pos;
   }
-  
+
   return -1;  // Not enough space
 }
 
 /**
  * @brief Implements token pasting (##) operator.
- * 
+ *
  * This function finds ## operators in the macro expansion result and concatenates
  * the tokens on either side of them. This is called after parameter substitution
  * to perform the final token pasting step.
- * 
+ *
  * @param buf Pointer to the start of the buffer.
  * @param endmacro Pointer to the end of the macro in the buffer.
  */
@@ -708,52 +708,52 @@ void removeDoubleHash(char *buf, char *endmacro)
       while (left_end >= buf && isspace(*left_end)) {
         left_end--;
       }
-      
+
       // Find the start of the left token
       char *left_start = left_end;
       while (left_start > buf && (isalnum(*(left_start - 1)) || *(left_start - 1) == '_')) {
         left_start--;
       }
-      
+
       // Find the start of the right token (skip forwards over whitespace)
       char *right_start = paste_pos + 2;
       while (right_start < endmacro && isspace(*right_start)) {
         right_start++;
       }
-      
+
       // Find the end of the right token
       char *right_end = right_start;
       while (right_end < endmacro && (isalnum(*right_end) || *right_end == '_')) {
         right_end++;
       }
-      
+
       if (left_start <= left_end && right_start < right_end) {
         // Calculate sizes
         int left_len = left_end - left_start + 1;
         int right_len = right_end - right_start;
         int paste_section_len = right_end - left_start;  // Total section being replaced
         int new_len = left_len + right_len;  // Length after pasting
-        
+
         // Create the pasted token
         char pasted[256];  // Temporary buffer for pasted token
         if ((size_t)new_len < sizeof(pasted)) {
           strncpy(pasted, left_start, left_len);
           strncpy(pasted + left_len, right_start, right_len);
           pasted[new_len] = '\0';
-          
+
           // Calculate how much content follows the right token
           char *end_of_buffer = endmacro + strlen(endmacro);
           int remaining_len = end_of_buffer - right_end;
-          
+
           // Replace the entire section (left_token ## right_token) with pasted token
           int size_diff = new_len - paste_section_len;
           if (size_diff != 0) {
             memmove(left_start + new_len, right_end, remaining_len + 1);
           }
-          
+
           // Copy the pasted token into position
           memcpy(left_start, pasted, new_len);
-          
+
           // Continue from after the pasted token
           paste_pos = left_start + new_len;
         } else {
@@ -774,11 +774,11 @@ void removeDoubleHash(char *buf, char *endmacro)
 
 /**
  * @brief Finds the end of a parameter in a buffer.
- * 
+ *
  * This function iterates over the buffer until it finds a comma or a closing parenthesis,
  * which signifies the end of a parameter. It also handles nested functional macros,
  * other expressions, and strings.
- * 
+ *
  * @param buf Pointer to the start of the parameter.
  * @param end Pointer to the end of the buffer.
  * @return Pointer to the end of the parameter.
@@ -798,13 +798,13 @@ char *findEndOfParameter(char *buf, char *end) {
 
 /**
  * @brief Processes a macro in a buffer.
- * 
+ *
  * This function takes a pointer to a buffer and the length of the buffer.
  * It scans the buffer for a macro and replaces it with its replacement text.
  * If the macro is a functional macro, it also replaces the parameters in the
  * replacement text with their corresponding arguments. If the buffer is too small
  * to hold the replacement text and the remaining contents of the buffer, it returns -1.
- * 
+ *
  * @param buf Pointer to the start of the buffer.
  * @param len Length of the buffer.
  * @param ifclausemode Flag indicating if the macro is inside an #if clause.
@@ -830,7 +830,7 @@ int processMacro(char *buf, int len, int ifclausemode)
       macro_expanded = 1;  // Mark that a macro was expanded
       return buf - start;
     }
-    
+
     if (*buf == '(') {  // skip functional macro
       buf = skipExpression(buf, end);
     }
@@ -905,7 +905,7 @@ int processMacro(char *buf, int len, int ifclausemode)
     buf = replaceBuf(start, buf, end, "0");
     return buf - start;  // Return position after replacement
   }
-  
+
   buf = replaceBuf(start, buf, end, macro->replace);
   if (buf == NULL) {  // buffer too small
     return -1;
@@ -921,17 +921,17 @@ int processMacro(char *buf, int len, int ifclausemode)
         while (param_end < buf && isIdent(*param_end, param_end - param_start)) {
           param_end++;
         }
-        
+
         // Check if this is a valid parameter name
         Macro *parammacro = parammacrolist;
         while (parammacro != NULL) {
           if (strlen(parammacro->name) == (size_t)(param_end - param_start) &&
               strncmp(parammacro->name, param_start, param_end - param_start) == 0) {
-            
+
             // Stringify the parameter
             char stringified[512];
             int str_len = stringifyParameter(parammacro->replace, stringified, sizeof(stringified));
-            
+
             if (str_len > 0) {
               char *newtoken = replaceBuf(token, param_end, end, stringified);
               if (newtoken == NULL) {  // buffer too small
@@ -946,7 +946,7 @@ int processMacro(char *buf, int len, int ifclausemode)
           }
           parammacro = parammacro->next;
         }
-        
+
         if (parammacro == NULL) {
           // Not a parameter, move past the #
           token++;
@@ -996,13 +996,13 @@ int processMacro(char *buf, int len, int ifclausemode)
 
 /**
  * @brief Processes a buffer to recognize and replace macros.
- * 
+ *
  * This function takes a pointer to a buffer and the length of the buffer.
  * It scans the buffer for macros and replaces them with their replacement text.
  * If a macro is a functional macro, it also replaces the parameters in the
  * replacement text with their corresponding arguments. If the buffer is too small
  * to hold the replacement text and the remaining contents of the buffer, it returns -1.
- * 
+ *
  * @param buf Pointer to the start of the buffer.
  * @param len Length of the buffer.
  * @return 0 if the buffer was successfully processed, -1 if an error occurred.
@@ -1026,7 +1026,7 @@ int processBuffer(char *buf, int len, int ifclausemode)
         DPRINT("processBuffer: failed %d\n", cnt);
         return cnt;
       }
-      
+
       if (macro_expanded) {  // A macro was expanded
         // Restart processing from the beginning of the replacement to handle recursion
         if (restart_count < MAX_RESTARTS) {
@@ -1064,10 +1064,10 @@ int processBuffer(char *buf, int len, int ifclausemode)
 
 /**
  * @brief Get replacement text for built-in macros.
- * 
+ *
  * This function handles built-in preprocessor macros like __LINE__ and __FILE__.
  * It returns dynamically generated replacement text for these macros.
- * 
+ *
  * @param start The start of the macro name.
  * @param end The end of the macro name.
  * @return A dynamically allocated string containing the replacement text, or NULL if not a built-in macro.
@@ -1076,7 +1076,7 @@ char *getBuiltinMacro(char *start, char *end) {
     static char line_buffer[32];
     static char file_buffer[512];
     int name_len = end - start;
-    
+
     // Check for __LINE__ macro
     if (name_len == 8 && strncmp(start, "__LINE__", 8) == 0) {
         // Get current input stream to get line number
@@ -1088,7 +1088,7 @@ char *getBuiltinMacro(char *start, char *end) {
             return "1";  // Default line number if no stream
         }
     }
-    
+
     // Check for __FILE__ macro
     if (name_len == 8 && strncmp(start, "__FILE__", 8) == 0) {
         // Get current input stream to get filename
@@ -1100,7 +1100,7 @@ char *getBuiltinMacro(char *start, char *end) {
             return "\"<unknown>\"";  // Default filename if no stream
         }
     }
-    
+
     // Not a built-in macro
     return NULL;
 }
