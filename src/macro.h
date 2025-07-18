@@ -14,6 +14,7 @@
 
 // Function prototypes
 int addMacro(char *buf);
+int addCommandLineMacro(const char *definition);
 int deleteMacro(char *buf);
 int processBuffer(char *buf, int len, int ifclausemode);
 void printMacroList();

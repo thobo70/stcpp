@@ -437,6 +437,65 @@ int addMacro(char *buf)
 }
 
 
+/**
+ * @brief Parse and add a macro from command line -D option.
+ * 
+ * This function parses command line macro definitions in the format:
+ * - MACRO (defines MACRO as 1)
+ * - MACRO=value (defines MACRO as value)
+ * - MACRO= (defines MACRO as empty string)
+ * 
+ * @param definition The macro definition string from -D option
+ * @return 0 on success, -1 on error
+ */
+int addCommandLineMacro(const char *definition) {
+    if (definition == NULL || *definition == '\0') {
+        return -1;
+    }
+    
+    // Find the '=' separator if it exists
+    const char *equals = strchr(definition, '=');
+    char *macro_string;
+    
+    if (equals == NULL) {
+        // No '=' found, define as MACRO 1
+        size_t len = strlen(definition);
+        macro_string = malloc(len + 3);  // space for " 1\0"
+        if (macro_string == NULL) {
+            return -1;
+        }
+        strcpy(macro_string, definition);
+        strcat(macro_string, " 1");
+    } else {
+        // '=' found, parse MACRO=value
+        size_t name_len = equals - definition;
+        size_t value_len = strlen(equals + 1);
+        
+        if (name_len == 0) {
+            return -1;  // Empty macro name
+        }
+        
+        macro_string = malloc(name_len + 1 + value_len + 1);  // space for "name value\0"
+        if (macro_string == NULL) {
+            return -1;
+        }
+        
+        // Copy macro name
+        strncpy(macro_string, definition, name_len);
+        macro_string[name_len] = ' ';  // Separator
+        
+        // Copy macro value (can be empty)
+        strcpy(macro_string + name_len + 1, equals + 1);
+    }
+    
+    // Use existing addMacro function
+    int result = addMacro(macro_string);
+    free(macro_string);
+    
+    return result;
+}
+
+
 
 /**
  * @brief Deletes a macro from the macro list.

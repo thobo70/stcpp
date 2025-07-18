@@ -52,15 +52,15 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  char *oarg = NULL;
   while ((opt = getopt(argc, argv, optString)) != -1) {
     switch (opt) {
       case 'D':
-        oarg = optarg;
         // cppcheck-suppress syntaxError
-        DPRINT("Define macro: %s\n", oarg);
-        addMacro(oarg);   // @todo: addMacro() is not enough, you need to parse the optarg for name and value
-        // Here you would add code to define a macro
+        DPRINT("Define macro: %s\n", optarg);
+        if (addCommandLineMacro(optarg) != 0) {
+          fprintf(stderr, "Error: Invalid macro definition: %s\n", optarg);
+          return 1;
+        }
         break;
       case 'U':
         DPRINT("Undefine macro: %s\n", optarg);
