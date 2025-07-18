@@ -19,6 +19,24 @@
 #include "macro.h"
 #include "cmdline.h"
 
+void print_help(const char *program_name) {
+  printf("Usage: %s [-Dname[=value]] [-Uname] [-Ipath] [-h] infile outfile\n\n", program_name);
+  printf("stcpp - Super Tiny C Preprocessor\n");
+  printf("A lightweight C preprocessor with comprehensive macro support.\n\n");
+  printf("Options:\n");
+  printf("  -Dname[=value]  Define a macro with optional value\n");
+  printf("  -Uname          Undefine a macro\n");
+  printf("  -Ipath          Add directory to include search path\n");
+  printf("  -h              Show this help message and exit\n\n");
+  printf("Arguments:\n");
+  printf("  infile          Input C source file to preprocess\n");
+  printf("  outfile         Output file for preprocessed code\n\n");
+  printf("Examples:\n");
+  printf("  %s input.c output.c\n", program_name);
+  printf("  %s -DDEBUG=1 -Iinclude input.c output.c\n", program_name);
+  printf("  %s -DVERSION=2 -UOLDFEATURE input.c -\n", program_name);
+}
+
 
 
 int main(int argc, char *argv[])
@@ -27,7 +45,7 @@ int main(int argc, char *argv[])
   FILE *outfile = stdout;
   char *outfname = NULL, *infname = NULL;
   // Define your supported options here. The colon after each letter indicates that the option requires an argument.
-  const char *optString = "D:U:I:";
+  const char *optString = "D:U:I:h";
 
   if (initsearchdirs() != 0) {
     return 1;
@@ -50,6 +68,9 @@ int main(int argc, char *argv[])
       case 'I':
         addsearchdir(optarg);
         break;
+      case 'h':
+        print_help(argv[0]);
+        return 0;
      default:
         // Handle unknown options and missing option arguments
         fprintf(stderr, "Unknown option or missing option argument: %c\n", opt);
@@ -59,7 +80,7 @@ int main(int argc, char *argv[])
 
   if (optind != argc - 2) {
     fprintf(stderr, "usage:\n");
-    fprintf(stderr, "cpp [-Dname[=value]] [-Uname] [-Ipath] infile outfile\n");
+    fprintf(stderr, "cpp [-Dname[=value]] [-Uname] [-Ipath] [-h] infile outfile\n");
     return 1;
   }
   infname = argv[optind];
