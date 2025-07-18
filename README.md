@@ -316,6 +316,8 @@ Contributions are welcome! Please see the documentation files for technical deta
 
 ## 📄 License
 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 Copyright (c) 2024 Thomas Boos (tboos70@gmail.com)
 
 ## 🎯 Project Status
