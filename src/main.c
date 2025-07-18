@@ -64,7 +64,10 @@ int main(int argc, char *argv[])
         break;
       case 'U':
         DPRINT("Undefine macro: %s\n", optarg);
-        // Here you would add code to undefine a macro
+        if (deleteMacro(optarg) != 0) {
+          fprintf(stderr, "Warning: Macro '%s' not defined, cannot undefine\n", optarg);
+          // Note: This is typically a warning, not an error in most C preprocessors
+        }
         break;
       case 'I':
         addsearchdir(optarg);
