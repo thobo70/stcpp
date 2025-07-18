@@ -14,12 +14,15 @@
 - ✅ **Expression evaluation** - Arithmetic expressions in `#if` conditions
 - ✅ **Line control** - `#line` directive for setting line numbers and filenames (passed to next stage)
 - ✅ **Built-in macros** - `__LINE__` and `__FILE__` standard C preprocessor macros
+- ✅ **Stdin/stdout support** - Process input from stdin and output to stdout for pipeline usage
+- ✅ **Help system** - Comprehensive `-h` option with usage examples and documentation
 
 ### Advanced Features
 - **Recursive macro expansion** - Proper handling of nested macro calls
 - **Parameter substitution** - Full parameter replacement in functional macros
 - **Conditional nesting** - Deep nesting support for `#if` constructs
 - **Search path management** - Multiple include directory support
+- **Pipeline compatibility** - Unix-style pipeline support with stdin/stdout
 - **Memory efficiency** - Optimized for low memory usage (~17KB binary)
 
 ## 📁 Project Architecture
@@ -178,12 +181,35 @@ make test-line         # Line directive
 
 # With predefined macros
 ./bin/stcpp -DDEBUG=1 -D__STDC__=1 input.c output.c
+
+# Get help
+./bin/stcpp -h
+```
+
+### Stdin/Stdout Support
+```bash
+# Read from stdin, write to stdout (full pipeline mode)
+echo '#define TEST 42' | ./bin/stcpp - -
+
+# Read from stdin, write to file
+cat input.c | ./bin/stcpp - output.c
+
+# Read from file, write to stdout
+./bin/stcpp input.c -
+
+# Use in complex pipelines
+cat input.c | ./bin/stcpp -DDEBUG=1 - - | gcc -x c - -o program
 ```
 
 ### Command Line Options
 - `-Dname[=value]` - Define a macro
 - `-Uname` - Undefine a macro
 - `-Ipath` - Add include search directory
+- `-h` - Show help message and exit
+
+**Special Arguments:**
+- Use `-` as input filename to read from stdin
+- Use `-` as output filename to write to stdout
 
 ### Example Processing
 
@@ -280,6 +306,7 @@ For detailed technical information, see:
 - [`STRINGIFICATION_IMPLEMENTATION.md`](STRINGIFICATION_IMPLEMENTATION.md) - Stringification details
 - [`LINE_DIRECTIVE_IMPLEMENTATION.md`](LINE_DIRECTIVE_IMPLEMENTATION.md) - Line directive implementation
 - [`BUILTIN_MACRO_IMPLEMENTATION.md`](BUILTIN_MACRO_IMPLEMENTATION.md) - Built-in macro support
+- [`STDIN_STDOUT_IMPLEMENTATION.md`](STDIN_STDOUT_IMPLEMENTATION.md) - Stdin/stdout pipeline support
 - [`RECURSIVE_MACRO_IMPLEMENTATION.md`](RECURSIVE_MACRO_IMPLEMENTATION.md) - Recursive expansion
 - [`SOURCE_CODE_ISSUES_ANALYSIS.md`](SOURCE_CODE_ISSUES_ANALYSIS.md) - Code quality analysis
 

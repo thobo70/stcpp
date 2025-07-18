@@ -44,17 +44,23 @@ The stcpp project is a comprehensive C preprocessor implementation with sophisti
 
 ### 1. Main Module (`main.c`)
 **Purpose:** Entry point and command-line argument processing  
-**Status:** ✅ Functional with known limitations
+**Status:** ✅ Functional with enhanced features
 
 #### Key Functions:
 - `main()` - Entry point and orchestration
-- Command-line option parsing (`-D`, `-U`, `-I`)
-- File I/O coordination
+- `print_help()` - Comprehensive help system with usage examples
+- Command-line option parsing (`-D`, `-U`, `-I`, `-h`)
+- File I/O coordination with stdin/stdout support
 - Main processing loop
+
+#### Recent Enhancements:
+- ✅ **Help system** - Added `-h` option with comprehensive documentation
+- ✅ **Stdin/stdout support** - Pipeline-friendly processing with `-` filename
+- ✅ **Enhanced CLI** - Improved command-line argument handling
 
 #### Integration Points:
 - **→ cmdline:** Processes preprocessor directives
-- **→ input:** Manages file input streams  
+- **→ input:** Manages file input streams including stdin  
 - **→ macro:** Handles macro processing
 - **← debug:** Uses debug macros
 
@@ -157,14 +163,14 @@ typedef struct macroparam {
 
 ### 4. Input Management (`input.c` + `input.h`)
 **Purpose:** File input stream management and include path handling  
-**Status:** ✅ Fully functional
+**Status:** ✅ Fully functional with stdin support
 
 #### Key Data Structure:
 ```c
 typedef struct instream {
     struct instream *parent;  // Parent stream (for #include)
-    FILE *file;               // File handle
-    char *fname;              // Filename
+    FILE *file;               // File handle (including stdin)
+    char *fname;              // Filename (including "<stdin>")
     int line, col, pos;       // Position tracking
     int eof, error;           // Status flags
     // ... additional fields
@@ -177,19 +183,25 @@ typedef struct instream {
   - `addsearchdir()` - Add include directory
 
 - **Stream Management:**
-  - `newinstream()` - Create new input stream
-  - `releaseinstream()` - Clean up stream
+  - `newinstream()` - Create new input stream (files or stdin)
+  - `releaseinstream()` - Clean up stream (stdin-aware)
   - `readline()` - Read line from current stream
   - `getcurrentinstream()` - Get active stream
+
+#### Recent Enhancements:
+- ✅ **Stdin Support:** Special handling for `<stdin>` streams
+- ✅ **Resource Protection:** Prevents closing stdin file descriptor
+- ✅ **Pipeline Compatibility:** Seamless stdin integration
 
 #### Features:
 - ✅ **Multiple Include Paths:** `-I` option support
 - ✅ **Nested Includes:** File inclusion stack
 - ✅ **Position Tracking:** Line/column tracking for error reporting
 - ✅ **Error Handling:** Comprehensive file error handling
+- ✅ **Stdin Processing:** Pipeline-friendly input processing
 
 #### Integration Points:
-- **← main:** Include path setup
+- **← main:** Include path setup and stdin detection
 - **← cmdline:** File inclusion requests
 - **→ All modules:** Error reporting context
 
