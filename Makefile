@@ -15,7 +15,7 @@ target: $(BINDIR) $(TARGET)
 $(BINDIR): 
 	mkdir -p bin
 
-$(BINDIR)/%.o: $(SRCDIR)/%.c
+$(BINDIR)/%.o: $(SRCDIR)/%.c | $(BINDIR)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(TARGET): $(OBJS)
@@ -34,49 +34,49 @@ test-all: $(TARGET)
 	@./test/run_tests.sh
 
 # Individual test targets
-test-basic: target
+test-basic: target test_results
 	@echo "Testing basic macro functionality..."
 	./$(TARGET) -Itest test/test_basic.c test_results/test_basic.out
 	@echo "Output:"
 	@head -20 test_results/test_basic.out
 
-test-recursive: target
+test-recursive: target test_results
 	@echo "Testing recursive macro expansion..."
 	./$(TARGET) -Itest test/test_recursive.c test_results/test_recursive.out
 	@echo "Output:"
 	@head -20 test_results/test_recursive.out
 
-test-edge: target
+test-edge: target test_results
 	@echo "Testing edge cases..."
 	./$(TARGET) -Itest test/test_edge_cases.c test_results/test_edge_cases.out
 	@echo "Output:"
 	@head -20 test_results/test_edge_cases.out
 
-test-conditionals: target
+test-conditionals: target test_results
 	@echo "Testing conditional compilation..."
 	./$(TARGET) -Itest test/test_conditionals.c test_results/test_conditionals.out
 	@echo "Output:"
 	@head -20 test_results/test_conditionals.out
 
-test-undef: target
+test-undef: target test_results
 	@echo "Testing #undef functionality..."
 	./$(TARGET) -Itest test/test_undef.c test_results/test_undef.out
 	@echo "Output:"
 	@head -20 test_results/test_undef.out
 
-test-include: target
+test-include: target test_results
 	@echo "Testing file inclusion..."
 	./$(TARGET) -Itest test/test_include.c test_results/test_include.out
 	@echo "Output:"
 	@head -20 test_results/test_include.out
 
-test-token-pasting: target
+test-token-pasting: target test_results
 	@echo "Testing token pasting (##) operator..."
 	./$(TARGET) -Itest test/test_token_pasting.c test_results/test_token_pasting.out
 	@echo "Output:"
 	@head -20 test_results/test_token_pasting.out
 
-test-stringification: target
+test-stringification: target test_results
 	@echo "Testing stringification (#) operator..."
 	./$(TARGET) -Itest test/test_stringification.c test_results/test_stringification.out
 	@echo "Output:"
