@@ -4,3 +4,16 @@ doc/*
 test.out
 err.log
 test_results/*
+
+# Unity test framework build artifacts
+test/unity_tests/build/*
+test/unity_tests/results/*
+test/unity_tests/*.gcov
+test/unity_tests/*.gcda
+test/unity_tests/*.gcno
+
+# Archive directories
+test/old_tests_archive_*
+
+# Temporary test files
+/tmp/*
