@@ -172,7 +172,11 @@ int check_defined(char *buf, char *end)
       replace[1] = '\0';
 
       // Replace the "defined(macro)" expression with the ASCII number
-      replaceBuf(start, defined_end, strend, replace);
+      if (pmode == 1) {
+        replaceBuf(start, defined_end + 1, strend, replace);  // Include the closing ')'
+      } else {
+        replaceBuf(start, defined_end, strend, replace);
+      }
 
       // Update strend in case the buffer size has changed
       strend = start + strlen(start) + 1;

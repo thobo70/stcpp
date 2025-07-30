@@ -626,7 +626,7 @@ int isdefinedMacro(char *start, char *end)
  */
 char *replaceBuf(char *start, char *buf, char *end, char *replace)
 {
-  char * endstr = buf + strlen(buf) + 1;
+  char * endstr = start + strlen(start);  // Find end of entire string from start
   if (replace == NULL) {
     replace = "";
   }
@@ -636,7 +636,7 @@ char *replaceBuf(char *start, char *buf, char *end, char *replace)
     return NULL;
   }
 
-  memmove(start + rlen, buf, endstr - buf);
+  memmove(start + rlen, buf, endstr - buf + 1);  // +1 to include null terminator
   memcpy(start, replace, rlen);
 
   return start + rlen;
@@ -1082,7 +1082,8 @@ char *getBuiltinMacro(char *start, char *end) {
         // Get current input stream to get line number
         instream_t *current = getcurrentinstream();
         if (current != NULL) {
-            snprintf(line_buffer, sizeof(line_buffer), "%d", current->line);
+            // Subtract 1 because line number has been incremented after processing the newline
+            snprintf(line_buffer, sizeof(line_buffer), "%d", current->line - 1);
             return line_buffer;
         } else {
             return "1";  // Default line number if no stream
