@@ -277,6 +277,7 @@ int preprocessedchar(instream_t *in) {
   if (in->string) {
     if (c == '\"' && in->last != '\\') {
       in->string = 0;
+      in->whitespaces = 0;  // Reset whitespace flag when exiting string
     }
     return c;
   }
@@ -434,8 +435,8 @@ void setlinenumber(int linenum, const char *filename) {
         return;  // No active input stream
     }
     
-    // Set the new line number (adjust by -1 because it will be incremented)
-    current->line = linenum - 1;
+    // Set the new line number
+    current->line = linenum;
     
     // Update filename if provided
     if (filename != NULL && filename[0] != '\0') {
