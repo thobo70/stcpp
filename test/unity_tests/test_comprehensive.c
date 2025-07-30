@@ -58,10 +58,25 @@ static int run_stcpp_test(const char* input_content, const char* expected_patter
     fclose(input);
     
     // Build command
-    char command[1024];
+    char command[2048];  // Increased buffer size
     if (options && strlen(options) > 0) {
+        // Escape quotes in options for shell
+        char escaped_options[1024];  // Increased buffer size
+        char *src = (char*)options;
+        char *dst = escaped_options;
+        while (*src && dst < escaped_options + sizeof(escaped_options) - 2) {
+            if (*src == '"') {
+                *dst++ = '\\';
+                *dst++ = '"';
+            } else {
+                *dst++ = *src;
+            }
+            src++;
+        }
+        *dst = '\0';
+        
         snprintf(command, sizeof(command), "%s %s %s %s 2>/dev/null", 
-                STCPP_BIN, options, test_input_file, test_output_file);
+                STCPP_BIN, escaped_options, test_input_file, test_output_file);
     } else {
         snprintf(command, sizeof(command), "%s %s %s 2>/dev/null", 
                 STCPP_BIN, test_input_file, test_output_file);

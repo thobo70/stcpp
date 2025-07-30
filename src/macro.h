@@ -16,6 +16,8 @@
 int addMacro(char *buf);
 int addCommandLineMacro(const char *definition);
 int deleteMacro(char *buf);
+int banMacro(char *name);
+int isMacroBanned(char *name);
 int processBuffer(char *buf, int len, int ifclausemode);
 void printMacroList();
 int isdefinedMacro(char *start, char *end);

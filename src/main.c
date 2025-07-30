@@ -64,9 +64,9 @@ int main(int argc, char *argv[])
         break;
       case 'U':
         DPRINT("Undefine macro: %s\n", optarg);
-        if (deleteMacro(optarg) != 0) {
-          fprintf(stderr, "Warning: Macro '%s' not defined, cannot undefine\n", optarg);
-          // Note: This is typically a warning, not an error in most C preprocessors
+        if (banMacro(optarg) != 0) {
+          fprintf(stderr, "Error: Cannot ban macro '%s'\n", optarg);
+          return 1;
         }
         break;
       case 'I':

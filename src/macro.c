@@ -99,10 +99,23 @@ typedef struct macro {
     char *replace;         /**< Replacement text of the macro. */
 } Macro;
 
+/**
+ * @struct BannedMacro
+ * @brief A structure to represent a banned macro name.
+ *
+ * This structure is used to store the names of macros that should not be defined,
+ * typically those specified with -U command line option.
+ */
+typedef struct bannedmacro {
+    struct bannedmacro *next; /**< Pointer to the next banned macro in the list. */
+    char *name; /**< Name of the banned macro. */
+} BannedMacro;
+
 
 
 Macro *macroList = NULL;
 static int macro_expanded = 0;  // Flag to track if macro expansion occurred
+static BannedMacro *bannedMacroList = NULL;  // List of banned macro names
 
 
 
@@ -148,6 +161,9 @@ char *skipString(char *buf, char *end)
   do {
     buf++;
   } while (buf < end && !(*buf == '\"' && *(buf - 1) != '\\'));
+  if (buf < end) {
+    buf++;  // Skip past the closing quote
+  }
   return buf;
 }
 
@@ -351,6 +367,11 @@ int addMacro(char *buf)
   *buf = '\0';
   if (*name == '\0' || strchr(" (", type) == NULL) {
     return -1;    /** @todo  error no macro */
+  }
+
+  // check if this macro is banned (from -U option)
+  if (isMacroBanned(name)) {
+    return 0;  // silently ignore banned macros
   }
 
   // check for parameter list if a '(' is found
@@ -561,6 +582,59 @@ int deleteMacro(char *name)
     temp = temp->next;
   }
   return -1;
+}
+
+/**
+ * @brief Adds a macro name to the banned macros list.
+ *
+ * This function adds a macro name to the banned macros list, preventing
+ * it from being defined later. This is used to implement the -U option.
+ *
+ * @param name Name of the macro to ban.
+ * @return 0 on success, -1 on error.
+ */
+int banMacro(char *name)
+{
+  // First try to delete the macro if it already exists
+  deleteMacro(name);
+  
+  // Add to banned list
+  BannedMacro *newBanned = malloc(sizeof(BannedMacro));
+  if (newBanned == NULL) {
+    return -1;
+  }
+  
+  newBanned->name = strdup(name);
+  if (newBanned->name == NULL) {
+    free(newBanned);
+    return -1;
+  }
+  
+  newBanned->next = bannedMacroList;
+  bannedMacroList = newBanned;
+  
+  return 0;
+}
+
+/**
+ * @brief Checks if a macro name is banned.
+ *
+ * This function checks if a macro name is in the banned macros list.
+ *
+ * @param name Name of the macro to check.
+ * @return 1 if banned, 0 if not banned.
+ */
+int isMacroBanned(char *name)
+{
+  BannedMacro *temp = bannedMacroList;
+  
+  while (temp != NULL) {
+    if (strcmp(temp->name, name) == 0) {
+      return 1;
+    }
+    temp = temp->next;
+  }
+  return 0;
 }
 
 
@@ -1011,7 +1085,21 @@ int processMacro(char *buf, int len, int ifclausemode)
 
             // Stringify the parameter
             char stringified[512];
-            int str_len = stringifyParameter(parammacro->replace, stringified, sizeof(stringified));
+            char expanded_param[512];
+            
+            // First expand the parameter value
+            strncpy(expanded_param, parammacro->replace, sizeof(expanded_param) - 1);
+            expanded_param[sizeof(expanded_param) - 1] = '\0';
+            
+            // Process the parameter value to expand any macros in it
+            int expanded_len = strlen(expanded_param);
+            if (processBuffer(expanded_param, expanded_len, 0) < 0) {
+              // If expansion fails, use original value
+              strncpy(expanded_param, parammacro->replace, sizeof(expanded_param) - 1);
+              expanded_param[sizeof(expanded_param) - 1] = '\0';
+            }
+            
+            int str_len = stringifyParameter(expanded_param, stringified, sizeof(stringified));
 
             if (str_len > 0) {
               char *newtoken = replaceBuf(token, param_end, end, stringified);
