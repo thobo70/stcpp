@@ -711,8 +711,17 @@ void removeDoubleHash(char *buf, char *endmacro)
 
       // Find the start of the left token
       char *left_start = left_end;
-      while (left_start > buf && (isalnum(*(left_start - 1)) || *(left_start - 1) == '_')) {
-        left_start--;
+      if (left_end >= buf && *left_end == '"') {
+        // Handle string literal - find the opening quote
+        left_start--; // Move past the closing quote
+        while (left_start > buf && *left_start != '"') {
+          left_start--;
+        }
+      } else {
+        // Handle identifier
+        while (left_start > buf && (isalnum(*(left_start - 1)) || *(left_start - 1) == '_')) {
+          left_start--;
+        }
       }
 
       // Find the start of the right token (skip forwards over whitespace)
@@ -723,8 +732,25 @@ void removeDoubleHash(char *buf, char *endmacro)
 
       // Find the end of the right token
       char *right_end = right_start;
-      while (right_end < endmacro && (isalnum(*right_end) || *right_end == '_')) {
-        right_end++;
+      if (right_start < endmacro && *right_start == '"') {
+        // Handle string literal - find the closing quote
+        right_end = right_start + 1;
+        while (right_end < endmacro && *right_end != '"') {
+          right_end++;
+        }
+        if (right_end < endmacro && *right_end == '"') {
+          right_end++; // Include the closing quote
+        }
+      } else if (right_start < endmacro && isdigit(*right_start)) {
+        // Handle number literal - include all alphanumeric characters for hex, floats, etc.
+        while (right_end < endmacro && (isalnum(*right_end) || *right_end == '.')) {
+          right_end++;
+        }
+      } else {
+        // Handle identifier
+        while (right_end < endmacro && (isalnum(*right_end) || *right_end == '_')) {
+          right_end++;
+        }
       }
 
       if (left_start <= left_end && right_start < right_end) {
@@ -732,33 +758,86 @@ void removeDoubleHash(char *buf, char *endmacro)
         int left_len = left_end - left_start + 1;
         int right_len = right_end - right_start;
         int paste_section_len = right_end - left_start;  // Total section being replaced
-        int new_len = left_len + right_len;  // Length after pasting
 
-        // Create the pasted token
-        char pasted[256];  // Temporary buffer for pasted token
-        if ((size_t)new_len < sizeof(pasted)) {
-          strncpy(pasted, left_start, left_len);
-          strncpy(pasted + left_len, right_start, right_len);
-          pasted[new_len] = '\0';
-
-          // Calculate how much content follows the right token
-          char *end_of_buffer = endmacro + strlen(endmacro);
-          int remaining_len = end_of_buffer - right_end;
-
-          // Replace the entire section (left_token ## right_token) with pasted token
-          int size_diff = new_len - paste_section_len;
-          if (size_diff != 0) {
-            memmove(left_start + new_len, right_end, remaining_len + 1);
+        // Special case: pasting string literal with non-string token
+        if (left_start < left_end && *left_start == '"' && *left_end == '"' &&
+            !(right_start < right_end && *right_start == '"')) {
+          // Merge non-string token into the string literal
+          char pasted[256];
+          int pos = 0;
+          
+          // Copy opening quote and string content (excluding closing quote)
+          for (char *p = left_start; p < left_end; p++) {
+            if (pos < (int)sizeof(pasted) - 1) {
+              pasted[pos++] = *p;
+            }
           }
+          
+          // Copy right token content
+          for (char *p = right_start; p < right_end; p++) {
+            if (pos < (int)sizeof(pasted) - 1) {
+              pasted[pos++] = *p;
+            }
+          }
+          
+          // Add closing quote
+          if (pos < (int)sizeof(pasted) - 1) {
+            pasted[pos++] = '"';
+          }
+          pasted[pos] = '\0';
+          
+          int new_len = pos;
+          
+          if (new_len < (int)sizeof(pasted)) {
+            // Calculate how much content follows the right token
+            char *end_of_buffer = endmacro + strlen(endmacro);
+            int remaining_len = end_of_buffer - right_end;
 
-          // Copy the pasted token into position
-          memcpy(left_start, pasted, new_len);
+            // Replace the entire section with pasted token
+            int size_diff = new_len - paste_section_len;
+            if (size_diff != 0) {
+              memmove(left_start + new_len, right_end, remaining_len + 1);
+            }
 
-          // Continue from after the pasted token
-          paste_pos = left_start + new_len;
+            // Copy the pasted token into position
+            memcpy(left_start, pasted, new_len);
+
+            // Continue from after the pasted token
+            paste_pos = left_start + new_len;
+          } else {
+            // Token too long, just remove the ##
+            memmove(paste_pos, paste_pos + 2, strlen(paste_pos + 2) + 1);
+          }
         } else {
-          // Token too long, just remove the ##
-          memmove(paste_pos, paste_pos + 2, strlen(paste_pos + 2) + 1);
+          // Regular token pasting
+          int new_len = left_len + right_len;  // Length after pasting
+
+          // Create the pasted token
+          char pasted[256];  // Temporary buffer for pasted token
+          if ((size_t)new_len < sizeof(pasted)) {
+            strncpy(pasted, left_start, left_len);
+            strncpy(pasted + left_len, right_start, right_len);
+            pasted[new_len] = '\0';
+
+            // Calculate how much content follows the right token
+            char *end_of_buffer = endmacro + strlen(endmacro);
+            int remaining_len = end_of_buffer - right_end;
+
+            // Replace the entire section (left_token ## right_token) with pasted token
+            int size_diff = new_len - paste_section_len;
+            if (size_diff != 0) {
+              memmove(left_start + new_len, right_end, remaining_len + 1);
+            }
+
+            // Copy the pasted token into position
+            memcpy(left_start, pasted, new_len);
+
+            // Continue from after the pasted token
+            paste_pos = left_start + new_len;
+          } else {
+            // Token too long, just remove the ##
+            memmove(paste_pos, paste_pos + 2, strlen(paste_pos + 2) + 1);
+          }
         }
       } else {
         // Invalid pasting context, just remove the ##
@@ -914,8 +993,10 @@ int processMacro(char *buf, int len, int ifclausemode)
   if (parammacrolist != NULL) {
     char *token = start;
     while (token < buf) {
-      if (*token == '#' && token + 1 < buf && isIdent(*(token + 1), 0)) {
+      if (*token == '#' && token + 1 < buf && isIdent(*(token + 1), 0) &&
+          !(token > start && *(token - 1) == '#')) {
         // Check for stringification: # followed by parameter name
+        // But skip if this # is part of ## (preceded by another #)
         char *param_start = token + 1;
         char *param_end = param_start;
         while (param_end < buf && isIdent(*param_end, param_end - param_start)) {

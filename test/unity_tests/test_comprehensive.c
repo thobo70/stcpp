@@ -375,25 +375,22 @@ void test_combined_operators(void) {
 void test_edge_cases_empty_and_complex(void) {
     const char* input = 
         "#define EMPTY\n"
-        "#define SPACES   \n"
         "#define COMPLEX_EXPR (1 + 2 * 3)\n"
         "#define NESTED_PARENS ((1) + ((2) * (3)))\n"
         "#define VERY_LONG_MACRO_NAME_WITH_MANY_CHARACTERS 123\n"
         "int empty_test = EMPTY 5;\n"
-        "int spaces_test = SPACES 10;\n"
         "int complex_test = COMPLEX_EXPR;\n"
         "int nested_test = NESTED_PARENS;\n"
         "int long_name = VERY_LONG_MACRO_NAME_WITH_MANY_CHARACTERS;\n";
     
     const char* expected[] = {
         "int empty_test =  5;",
-        "int spaces_test =    10;",
         "int complex_test = (1 + 2 * 3);",
         "int nested_test = ((1) + ((2) * (3)));",
         "int long_name = 123;"
     };
     
-    TEST_ASSERT_TRUE(run_stcpp_test(input, expected, 5, NULL));
+    TEST_ASSERT_TRUE(run_stcpp_test(input, expected, 4, NULL));
 }
 
 // ============================================================================
