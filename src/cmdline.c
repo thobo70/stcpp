@@ -21,24 +21,37 @@
 
 
 
+/**
+ * @enum cmdtoken
+ * @brief Enumeration of preprocessor directive types.
+ * 
+ * Defines the different types of preprocessor directives that can be
+ * encountered and processed by the preprocessor.
+ */
 typedef enum cmdtoken {
-  EMPTY,
-  INCLUDE,
-  DEFINE,
-  UNDEF,
-  IF,
-  IFDEF,
-  IFNDEF,
-  ELSE,
-  ELIF,
-  ENDIF,
-  ERROR,
-  PRAGMA,
-  LINE,
-  UNKNOWN,
-  Err
+  EMPTY,      /**< Empty directive (just #). */
+  INCLUDE,    /**< #include directive. */
+  DEFINE,     /**< #define directive. */
+  UNDEF,      /**< #undef directive. */
+  IF,         /**< #if directive. */
+  IFDEF,      /**< #ifdef directive. */
+  IFNDEF,     /**< #ifndef directive. */
+  ELSE,       /**< #else directive. */
+  ELIF,       /**< #elif directive. */
+  ENDIF,      /**< #endif directive. */
+  ERROR,      /**< #error directive. */
+  PRAGMA,     /**< #pragma directive. */
+  LINE,       /**< #line directive. */
+  UNKNOWN,    /**< Unknown directive. */
+  Err         /**< Error state. */
 } cmdtoken_t;
 
+/**
+ * @brief Array of command name strings corresponding to cmdtoken values.
+ * 
+ * This array provides string representations of preprocessor directive names
+ * that can be used for parsing and debugging purposes.
+ */
 const char *cmdnames[] = {
   "",
   "include",
@@ -56,13 +69,25 @@ const char *cmdnames[] = {
 };
 
 
+/**
+ * @struct cmdcond
+ * @brief Structure for tracking conditional compilation state.
+ * 
+ * This structure maintains the state of nested conditional compilation
+ * blocks (#if/#ifdef/#ifndef with #else/#elif/#endif).
+ */
 typedef struct cmdcond {
-  cmdcondstate_t state;
-  int ifstate;            // 1 if the condition is true, 0 otherwise
-  struct cmdcond *prev;   // previous condition
+  cmdcondstate_t state;     /**< Current state (COND_IF or COND_ELSE). */
+  int ifstate;              /**< 1 if condition is true, 0 otherwise. */
+  struct cmdcond *prev;     /**< Pointer to previous condition in stack. */
 } cmdcond_t;
 
-
+/**
+ * @brief Global pointer to current conditional compilation state.
+ * 
+ * Points to the top of the conditional compilation stack, or NULL
+ * if no conditional blocks are active.
+ */
 cmdcond_t *cmdcond = NULL;
 int condstate = 1;
 
@@ -113,6 +138,17 @@ cmdtoken_t getcmdtype(char *cmd)
 
 
 
+/**
+ * @brief Processes 'defined' expressions in preprocessor conditionals.
+ * 
+ * Searches for 'defined' expressions in the format "defined(MACRO)" or "defined MACRO"
+ * and replaces them with '1' if the macro is defined or '0' if not defined.
+ * This function is used to evaluate #if expressions containing the defined operator.
+ * 
+ * @param buf Buffer containing the expression to process.
+ * @param end Pointer to the end of the buffer.
+ * @return 0 on success, -1 on error (buffer overflow, syntax error).
+ */
 int check_defined(char *buf, char *end)
 {
   assert(buf != NULL);
@@ -195,6 +231,14 @@ int check_defined(char *buf, char *end)
 
 
 
+/**
+ * @brief Removes all whitespace characters from a string in-place.
+ * 
+ * Compacts a string by removing all whitespace characters (spaces, tabs, newlines, etc.)
+ * and shifts the remaining characters to fill the gaps. The string is modified in-place.
+ * 
+ * @param buf Null-terminated string to strip whitespace from.
+ */
 void stripspaces(char *buf)
 {
   assert(buf != NULL);
@@ -212,6 +256,24 @@ void stripspaces(char *buf)
 
 
 
+/**
+ * @brief Evaluates an expression for conditional compilation directives.
+ * 
+ * This function processes and evaluates expressions used in #if and #elif
+ * directives. It handles 'defined' operators, macro expansion, and arithmetic
+ * expression evaluation.
+ * 
+ * The evaluation process:
+ * 1. Strips whitespace from the expression
+ * 2. Processes 'defined(MACRO)' and 'defined MACRO' operators
+ * 3. Expands macros in the expression
+ * 4. Evaluates the resulting arithmetic expression
+ * 
+ * @param buf Buffer containing the expression to evaluate.
+ * @param end Pointer to the end of the buffer.
+ * @param result Pointer to store the evaluation result.
+ * @return 0 on success, -1 on error.
+ */
 int evalifexpr(char *buf, char *end, result_t *result)
 {
   assert(buf != NULL);
@@ -240,6 +302,17 @@ int evalifexpr(char *buf, char *end, result_t *result)
 
 
 
+/**
+ * @brief Processes #include directive to include a file.
+ * 
+ * Parses an #include directive, extracts the filename (in angle brackets or quotes),
+ * and creates a new input stream for the included file. Supports both system
+ * includes (<filename>) and local includes ("filename").
+ * 
+ * @param buf Buffer containing the #include directive arguments.
+ * @param end Pointer to the end of the buffer.
+ * @return 0 on success, -1 on error (invalid syntax, file not found).
+ */
 int do_include(char *buf, char *end)
 {
   assert(buf != NULL);

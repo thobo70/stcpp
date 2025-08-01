@@ -1,12 +1,15 @@
 /**
  * @file main.c
  * @author Thomas Boos (tboos70@gmail.com)
- * @brief
+ * @brief Main entry point for the Super Tiny C Preprocessor (stcpp).
  * @version 0.1
  * @date 2024-08-07
  *
  * @copyright Copyright (c) 2024
  *
+ * This file contains the main function and command-line processing logic
+ * for the Super Tiny C Preprocessor. It handles command-line arguments,
+ * initializes the preprocessor, and processes input files.
  */
 #define NDEBUG
 #include <stdio.h>
@@ -19,6 +22,14 @@
 #include "macro.h"
 #include "cmdline.h"
 
+/**
+ * @brief Prints usage information and help text.
+ * 
+ * Displays comprehensive help information including command-line options,
+ * usage examples, and supported features of the preprocessor.
+ * 
+ * @param program_name Name of the program executable.
+ */
 void print_help(const char *program_name) {
   printf("Usage: %s [-Dname[=value]] [-Uname] [-Ipath] [-h] infile outfile\n\n", program_name);
   printf("stcpp - Super Tiny C Preprocessor\n");
@@ -38,7 +49,25 @@ void print_help(const char *program_name) {
   printf("  echo '#define TEST 42' | %s - -\n", program_name);
 }
 
-
+/**
+ * @brief Main entry point for the Super Tiny C Preprocessor.
+ * 
+ * Processes command-line arguments, initializes the preprocessor subsystems,
+ * opens input and output files, and performs preprocessing. Supports:
+ * - Macro definition and undefinition (-D, -U options)
+ * - Include path specification (-I option)
+ * - File inclusion processing
+ * - Conditional compilation (#if, #ifdef, etc.)
+ * - Built-in macro expansion (__LINE__, __FILE__)
+ * - Line directive processing (#line)
+ * 
+ * The preprocessor reads input line by line, processing preprocessor
+ * directives and expanding macros in regular source lines.
+ * 
+ * @param argc Number of command-line arguments.
+ * @param argv Array of command-line argument strings.
+ * @return 0 on success, 1 on error.
+ */
 
 int main(int argc, char *argv[])
 {

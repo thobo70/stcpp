@@ -82,8 +82,6 @@ typedef struct macroparam {
     char *name; /**< Name of the parameter. */
 } MacroParam;
 
-
-
 /**
  * @struct Macro
  * @brief A structure to represent a macro.
@@ -111,11 +109,28 @@ typedef struct bannedmacro {
     char *name; /**< Name of the banned macro. */
 } BannedMacro;
 
-
-
+/**
+ * @brief Global list of defined macros.
+ * 
+ * Head pointer to the linked list of currently defined macros.
+ */
 Macro *macroList = NULL;
-static int macro_expanded = 0;  // Flag to track if macro expansion occurred
-static BannedMacro *bannedMacroList = NULL;  // List of banned macro names
+
+/**
+ * @brief Flag indicating if macro expansion occurred during processing.
+ * 
+ * Used internally to track whether any macros were expanded during
+ * buffer processing, enabling recursive macro expansion detection.
+ */
+static int macro_expanded = 0;
+
+/**
+ * @brief Global list of banned macro names.
+ * 
+ * Head pointer to the linked list of macro names that are banned
+ * from being defined (typically set via -U command line option).
+ */
+static BannedMacro *bannedMacroList = NULL;
 
 
 
@@ -169,6 +184,18 @@ char *skipString(char *buf, char *end)
 
 
 
+/**
+ * @brief Skips over a numeric literal in a buffer.
+ *
+ * This function advances the buffer pointer past a numeric literal, handling
+ * various number formats including decimal, hexadecimal (0x), and numbers
+ * with suffixes (u, l, ul, etc.). It stops at the first non-numeric character
+ * that doesn't belong to the number format.
+ *
+ * @param buf Pointer to the start of the buffer.
+ * @param end Pointer to the end of the buffer.
+ * @return Pointer to the character after the numeric literal.
+ */
 char *skipNumber(char *buf, char *end)
 {
   assert(buf != NULL);
@@ -1174,6 +1201,7 @@ int processMacro(char *buf, int len, int ifclausemode)
  *
  * @param buf Pointer to the start of the buffer.
  * @param len Length of the buffer.
+ * @param ifclausemode Flag indicating if processing within #if clause (undefined macros become 0).
  * @return 0 if the buffer was successfully processed, -1 if an error occurred.
  */
 int processBuffer(char *buf, int len, int ifclausemode)

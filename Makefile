@@ -4,9 +4,9 @@ SRCDIR = ./src
 OBJS = $(BINDIR)/exprint.o $(BINDIR)/cmdline.o $(BINDIR)/input.o $(BINDIR)/macro.o $(BINDIR)/main.o
 TARGET = $(BINDIR)/stcpp
 CFLAGS = -g -Og -Wall -Werror -Wextra -pedantic -Isrc
-# CFLAGS = -DNDEBUG -Oz -Wall -Werror -Wextra -pedantic -Isrc
+#CFLAGS = -Oz -Wall -Werror -Wextra -pedantic -Isrc
 
-.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include test-token-pasting test-stringification test-line doc lint
+.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include test-token-pasting test-stringification test-line doc lint doc-serve doc-stop help
 
 all: target
 
@@ -129,3 +129,55 @@ test2: target
 
 doc:
 	doxygen Doxyfile
+
+# Serve documentation with HTTP server
+doc-serve: doc
+	@echo "Starting HTTP server for documentation at http://localhost:8080"
+	@cd doc/html && python3 -m http.server 8080 > /dev/null 2>&1 &
+	@echo "Documentation server started in background"
+	@echo "Visit: http://localhost:8080"
+	@echo "Stop with: make doc-stop"
+
+# Stop documentation HTTP server
+doc-stop:
+	@echo "Stopping documentation HTTP server..."
+	@pkill -f "python3 -m http.server 8080" || echo "No HTTP server running on port 8080"
+
+# Display help information
+help:
+	@echo "Super Tiny C Preprocessor (stcpp) - Makefile Help"
+	@echo "=================================================="
+	@echo ""
+	@echo "Build Targets:"
+	@echo "  all, target    - Build the stcpp binary"
+	@echo "  clean          - Remove build artifacts and generated files"
+	@echo ""
+	@echo "Testing Targets:"
+	@echo "  test           - Run Unity comprehensive test suite"
+	@echo "  test-unity     - Run Unity comprehensive test suite"
+	@echo "  test-all       - Run all tests via test script"
+	@echo "  test-basic     - Test basic macro functionality"
+	@echo "  test-recursive - Test recursive macro expansion"
+	@echo "  test-edge      - Test edge cases"
+	@echo "  test-conditionals - Test conditional compilation"
+	@echo "  test-undef     - Test #undef functionality"
+	@echo "  test-include   - Test file inclusion"
+	@echo "  test-token-pasting - Test token pasting (##) operator"
+	@echo "  test-stringification - Test stringification (#) operator"
+	@echo "  test-line      - Test #line directive"
+	@echo ""
+	@echo "Documentation Targets:"
+	@echo "  doc            - Generate HTML documentation with Doxygen"
+	@echo "  doc-serve      - Generate and serve documentation at http://localhost:8080"
+	@echo "  doc-stop       - Stop the documentation HTTP server"
+	@echo ""
+	@echo "Code Quality Targets:"
+	@echo "  lint           - Run cpplint on source files"
+	@echo ""
+	@echo "Usage Examples:"
+	@echo "  make           - Build the preprocessor"
+	@echo "  make test      - Run comprehensive test suite"
+	@echo "  make doc-serve - Generate and view documentation in browser"
+	@echo "  make clean     - Clean up all generated files"
+	@echo ""
+	@echo "For more information, see README.md"
