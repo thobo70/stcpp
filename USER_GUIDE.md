@@ -27,7 +27,7 @@ STCPP is a lightweight, fully-featured C preprocessor that handles all standard 
 - Token pasting (`##`) and stringification (`#`)  
 - Conditional compilation (`#if`, `#ifdef`, `#ifndef`)
 - Command-line macro definitions and undefinitions
-- Include file processing
+- Include file processing with `CPATH` environment variable support
 - Built-in macros (`__LINE__`, `__FILE__`)
 - Standard C preprocessor compatibility
 
@@ -114,6 +114,44 @@ stcpp -Iinclude input.c output.c
 
 # Multiple include paths
 stcpp -Iinclude -I../common -I/usr/local/include input.c output.c
+```
+
+### `CPATH` Environment Variable
+
+STCPP automatically reads the `CPATH` environment variable to set up include search paths. This provides a convenient way to configure global include directories without specifying `-I` options repeatedly.
+
+```bash
+# Set CPATH environment variable
+export CPATH="/usr/local/include:/opt/include:/home/user/includes"
+
+# Now STCPP will search these directories automatically
+stcpp input.c output.c
+
+# You can still add more paths with -I (these are searched first)
+stcpp -Iproject/include input.c output.c
+```
+
+**Search Order:**
+1. Current directory
+2. Directories specified with `-I` options (in order given)
+3. Directories from `CPATH` environment variable (in order listed)
+
+**CPATH Format:**
+- Unix/Linux: Colon-separated paths: `/path1:/path2:/path3`
+- The paths are processed in the order they appear in CPATH
+
+**Examples:**
+```bash
+# Development setup
+export CPATH="/usr/include:/usr/local/include:/opt/dev/include"
+stcpp -Isrc/include input.c output.c
+
+# Will search in this order:
+# 1. ./
+# 2. src/include/
+# 3. /usr/include/
+# 4. /usr/local/include/
+# 5. /opt/dev/include/
 ```
 
 ### `-h` Help
@@ -333,12 +371,41 @@ DEBUG_PRINT("Starting function");
 #include <stdio.h>       // Search in system directories
 ```
 
+### Include Search Path
+
+STCPP searches for include files in the following order:
+
+1. **Current directory** (always searched first)
+2. **`-I` directories** (command-line specified paths, in order given)
+3. **`CPATH` directories** (environment variable paths, in order listed)
+
 ### Include with Search Paths
 
-Using command line: `stcpp -Iinclude -I../common input.c output.c`
+**Using command line:**
+```bash
+stcpp -Iinclude -I../common input.c output.c
+```
 
+**Using CPATH environment variable:**
+```bash
+export CPATH="/usr/include:/usr/local/include"
+stcpp input.c output.c
+```
+
+**Combined usage:**
+```bash
+export CPATH="/usr/include:/usr/local/include"
+stcpp -Iproject/include -I../shared input.c output.c
+```
+
+**Example include resolution:**
 ```c
-#include "config.h"      // Searches: ./config.h, include/config.h, ../common/config.h
+#include "config.h"      // Searches: 
+                         // 1. ./config.h
+                         // 2. project/include/config.h  
+                         // 3. ../shared/config.h
+                         // 4. /usr/include/config.h
+                         // 5. /usr/local/include/config.h
 ```
 
 ### Nested Includes
@@ -445,6 +512,40 @@ LOG("Application started");           // → printf("[LOG] %s\n", "Application s
 DBG_PRINT("Value: %d", 42);          // → /* disabled */
 ```
 
+### Environment Variable Setup
+
+**Setting up a development environment:**
+
+```bash
+# Set up include paths for your project
+export CPATH="/usr/include:/usr/local/include:/opt/myproject/include"
+
+# Create a simple header file
+echo '#define PROJECT_VERSION "1.0"' > /opt/myproject/include/version.h
+
+# Create input file that uses the header
+cat > main.c << 'EOF'
+#include "version.h"
+#include <stdio.h>
+
+int main() {
+    printf("Project version: %s\n", PROJECT_VERSION);
+    return 0;
+}
+EOF
+
+# Preprocess (will automatically find version.h via CPATH)
+stcpp main.c main_processed.c
+```
+
+**Result:**
+```c
+int main() {
+    printf("Project version: %s\n", "1.0");
+    return 0;
+}
+```
+
 ---
 
 ## Tips and Best Practices
@@ -500,17 +601,28 @@ Be careful with macros that evaluate parameters multiple times:
 int result = MAX(++i, ++j);  // i and j are incremented multiple times!
 ```
 
-### 5. Using Command-Line Options Effectively
+### 5. Using Command-Line Options and Environment Variables Effectively
 
 ```bash
-# Development build
-stcpp -DDEBUG=1 -DVERBOSE=1 -Iinclude src/main.c build/main_debug.c
+# Development build with environment setup
+export CPATH="/usr/include:/usr/local/include:/project/include"
+stcpp -DDEBUG=1 -DVERBOSE=1 -Isrc/include src/main.c build/main_debug.c
 
 # Release build  
 stcpp -DNDEBUG -DOPTIMIZED=1 -Iinclude src/main.c build/main_release.c
 
-# Testing build
-stcpp -DTEST_MODE=1 -UDEBUG -Iinclude -Itest src/main.c build/main_test.c
+# Testing build with specific include override
+stcpp -DTEST_MODE=1 -UDEBUG -Itest/mocks -Iinclude src/main.c build/main_test.c
+```
+
+**Setting up team development environment:**
+```bash
+# In your project's setup script
+export CPATH="/opt/company/include:/usr/local/include"
+export PROJECT_INCLUDES="include:../common/include"
+
+# Team members can then use:
+stcpp -I${PROJECT_INCLUDES//:/ -I} src/main.c build/main.c
 ```
 
 ### 6. Organizing Large Macro Systems
