@@ -1,12 +1,17 @@
 CC = gcc
 BINDIR = ./bin
 SRCDIR = ./src
-OBJS = $(BINDIR)/exprint.o $(BINDIR)/cmdline.o $(BINDIR)/input.o $(BINDIR)/macro.o $(BINDIR)/main.o
+OBJS = $(BINDIR)/exprint.o $(BINDIR)/cmdline.o $(BINDIR)/input.o $(BINDIR)/macro.o $(BINDIR)/main.o $(BINDIR)/version.o
 TARGET = $(BINDIR)/stcpp
-CFLAGS = -g -Og -Wall -Werror -Wextra -pedantic -Isrc
+
+# Extract version information from Git
+VERSION := $(shell git describe --tags --always --dirty --match "v*" 2>/dev/null || echo "unknown")
+BUILD_DATE := $(shell date -u +"%Y-%m-%d %H:%M:%S UTC" 2>/dev/null || echo "unknown")
+
+CFLAGS = -g -Og -Wall -Werror -Wextra -pedantic -Isrc -DVERSION_STRING='"$(VERSION)"' -DBUILD_DATE='"$(BUILD_DATE)"'
 #CFLAGS = -Oz -Wall -Werror -Wextra -pedantic -Isrc
 
-.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include test-token-pasting test-stringification test-line doc lint doc-serve doc-stop help
+.PHONY: all clean test test2 test-all test-basic test-recursive test-edge test-conditionals test-undef test-include test-token-pasting test-stringification test-line doc lint doc-serve doc-stop help version
 
 all: target
 
@@ -174,6 +179,9 @@ help:
 	@echo "Code Quality Targets:"
 	@echo "  lint           - Run cpplint on source files"
 	@echo ""
+	@echo "Utility Targets:"
+	@echo "  version        - Display current version information"
+	@echo ""
 	@echo "Usage Examples:"
 	@echo "  make           - Build the preprocessor"
 	@echo "  make test      - Run comprehensive test suite"
@@ -181,3 +189,8 @@ help:
 	@echo "  make clean     - Clean up all generated files"
 	@echo ""
 	@echo "For more information, see README.md"
+
+# Display version information
+version:
+	@echo "stcpp version $(VERSION)"
+	@echo "Built on $(BUILD_DATE)"
